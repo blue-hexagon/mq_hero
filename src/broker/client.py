@@ -4,8 +4,8 @@ import time
 
 import paho.mqtt.client as mqtt
 
-from src.data.device import Device
-from src.app_store import Store
+from src.app.store import Store
+from src.business.domain_model import Device
 
 
 class MqttClient():
