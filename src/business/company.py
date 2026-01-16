@@ -1,19 +1,26 @@
-from src.business.farm import Farm, FarmAlreadyExistsWithId
+import re
+from typing import Optional
+
+from src.business.excp import FarmAlreadyExistsWithId
+from src.business.farm import Farm
 
 
 class Company:
-    def __init__(self, company_full_name: str, company_short_name: str):
-        self.full_name = company_full_name
-        self.short_name = company_short_name  # Used for topic building
+    def __init__(self, full_name: str, short_name: str, api_version: int = 1):
+        self.description = None
+        self.full_name = full_name
+        self.short_name = short_name  # Used for topic building
         self.farms = dict()
+        self.api_version = api_version
 
-    def get_company_topic_str(self) -> str:
-        return self.short_name.replace(' ', '_')
+    def topic_root(self) -> str:
+        safe = self.short_name.lower()
+        safe = re.sub(r'[^a-z0-9_]+', '_', safe)
+        return f"{safe.strip('_')}/v{self.api_version}"
 
     def add_farm(self, farm: Farm):
-        if any([i for i in self.farms.keys() if farm.id == i]):
+        if farm.id in self.farms:
             raise FarmAlreadyExistsWithId("Invalid ID used!")
         self.farms[farm.id] = farm
+        return self
 
-    def add_farms(self, *farms: [Farm]) -> None:
-        [self.add_farm(f) for f in farms]

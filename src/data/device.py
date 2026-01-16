@@ -3,7 +3,7 @@ from collections import namedtuple
 from typing import Callable
 
 from src.app_store import Store
-from src.broker.topic import TopicCategory
+from src.broker.topic import TopicCategory, DeviceCategory
 
 
 class Device:
@@ -19,6 +19,9 @@ class Device:
         self.category = category
         self.topics = set()
         self.messages = namedtuple("message", ["topic", "datasource"])
+
+      def topic_root(self, company_topic: str, farm_id: str) -> str:
+            return f"{company_topic}/{farm_id}/{self.id}"
 
     def add_message(self, topic: TopicCategory, datasource: Callable):
         self.messages()
