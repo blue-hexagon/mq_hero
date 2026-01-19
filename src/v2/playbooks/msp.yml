@@ -1,0 +1,43 @@
+companies:
+  msp_test:
+    full_name: "msp_test"
+    short_name: "msp_test"
+    api_version: 2
+    description: "RingstedOne's Test Environment"
+    farms: [ ]
+  msp_staging:
+    full_name: "msp_stage"
+    short_name: "msp_stage"
+    api_version: 1
+    description: "RingstedOne's Staging Environment"
+    farms: [ ]
+  agritech:
+    full_name: "AgriTech Solutions"
+    short_name: "agtech"
+    api_version: 1
+    description: "AgriTechs IoT-Solution."
+    farms:
+      - id: "farm-01"
+        name: "Rørendegaard"
+        city: "Taastrup"
+        devices:
+          - id: "temp-01"
+            type: "sensor"
+            model: "DHT22"
+            location: "greenhouse-1"
+          - id: "irrig-03"
+            type: "machine"
+            model: "valve-v2"
+            location: "field-a"
+          - id: "drone-02"
+            type: "drone"
+            model: "x4-quadcopter"
+            location: "hangar"
+      - id: "farm-02"
+        name: "Nordmark"
+        city: "Roskilde"
+        devices:
+          - id: "temp-02"
+            type: "sensor"
+            model: "BME280"
+            location: "storage"

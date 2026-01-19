@@ -1,0 +1,5 @@
+# config = yaml_repo.load()
+# companies = provisioning_service.provision(config)
+# policies = topic_service.generate_policies(companies)
+# mqtt.apply_policies(policies)
+# mqtt.start()
