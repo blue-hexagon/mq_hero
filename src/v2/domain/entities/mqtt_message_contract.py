@@ -24,7 +24,8 @@ QoS = Literal[0, 1, 2]
 
 
 @dataclass
-class MessageContract:
+class MqttMessageContract:
+    """ Bridges the API and MQTT """
     msg_type: MessageClass
     direction: MqttDirection
     handler: Optional[Callable[[Any], str]] = None

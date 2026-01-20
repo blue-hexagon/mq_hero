@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.v2.domain.entities.device import DeviceClass
-from src.v2.domain.entities.message_contract import MessageClass, MqttDirection
+from src.v2.domain.entities.mqtt_message_contract import MessageClass, MqttDirection
 
 
 @dataclass(frozen=True)
