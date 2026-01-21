@@ -1,10 +1,10 @@
 from enum import Enum
 
 
-class TopicLevel(Enum):
+class TopicLevel(str, Enum):
     MSP = "msp_id"
-    COMPANY = "company_id"
+    TENANT = "tenant_id"
     FARM = "farm_id"
     DEVICE_CLASS = "device_class"
     DEVICE = "device_id"
-    MESSAGE_TYPE = "message_type"
+    MESSAGE_CLASS = "message_class"

@@ -1,68 +1,74 @@
 # yaml-language-server: $schema=../schemas/tenant.schema.yaml
+schema_version: "1.0"
 tenants:
-  msp_test:
+  rit_agritech:
     meta:
-      full_name: "msp_test"
-      short_name: "msp_test"
-      api_version: 2
-      description: "RingstedOne's Test Environment"
+      full_name: "AgriTech Solutions"
+      short_name: "agtech"
+      api_version: 1
+      description: "IoT-implementation for AgriTech Solution."
     topology:
-      farms: [ ]
-    definitions:
-      device_types:
-      message_types:
-    policies:
+      farms:
+        - id: "farm-taastrup"
+          name: "Rørendegaard"
+          city: "Taastrup"
+          devices:
+            - id: "temp-01"
+              class: "sensor"
+              model: "DHT22"
+              location: "greenhouse"
+              policies: [ "sensor-pub" ]
+            - id: "hum-01"
+              class: "sensor"
+              model: "X1C"
+              location: "greenhouse"
+              policies: [ "sensor-pub" ]
+            - id: "irrig-01"
+              class: "actuator"
+              model: "valve-v2"
+              location: "greenhouse"
+              policies: [ "command-sub" ]
+            - id: "drone-01"
+              class: "drone"
+              model: "x4-quadcopter"
+              location: "cropfield"
+              policies: [ "command-sub" ]
 
-  msp_staging:
-    full_name: "msp_stage"
-    short_name: "msp_stage"
-    api_version: 1
-    description: "RingstedOne's Staging Environment"
-    farms: [ ]
-  agritech:
-    full_name: "AgriTech Solutions"
-    short_name: "agtech"
-    api_version: 1
-    description: "AgriTechs IoT-Solution."
-    farms:
-      - id: "farm-01"
-        name: "Rørendegaard"
-        city: "Taastrup"
-        devices:
-          - id: "temp-01"
-            type: "sensor"
-            model: "DHT22"
-            location: "greenhouse-1"
-          - id: "irrig-03"
-            type: "machine"
-            model: "valve-v2"
-            location: "field-a"
-          - id: "drone-02"
-            type: "drone"
-            model: "x4-quadcopter"
-            location: "hangar"
-      - id: "farm-02"
-        name: "Nordmark"
-        city: "Roskilde"
-        devices:
-          - id: "temp-02"
-            type: "sensor"
-            model: "BME280"
-            location: "storage"
-            policies: ["drone-outbound-commands"]
-    device_classes:
-      - "drone"
-      - "sensor"
-      - "actuator"
-    message_classes:
-      - id: "metrics"
-        topic: "metrics"
-      - "events"
-      - "alert"
-      - "cmd"
-      - "image"
+        - id: "farm-roskilde"
+          name: "Nordmark"
+          city: "Roskilde"
+          devices:
+            - id: "temp-01"
+              class: "sensor"
+              model: "DHT22"
+              location: "cropfield"
+              policies: [ "sensor-pub" ]
+
+    definitions:
+      device_classes:
+        drone: { }
+        sensor: { }
+        actuator: { }
+      message_classes:
+        - id: metric
+          topic: metric
+        - id: event
+          topic: evt
+        - id: alert
+          topic: alert
+        - id: command
+          topic: cmd
+        - id: image
+          topic: img
+
     policies:
-      - name: "drone-outbound-commands"
-        device_class: [ "metric" ]
-        message_class: [ "drone", "sensor", "actuator" ]
-        direction: "PUB"
+      - name: "sensor-pub"
+        farms: [ "farm-taastrup", "farm-roskilde" ]
+        device_classes: [ "sensor" ]
+        message_classes: [ "metric","event","alert" ]
+        direction: PUB
+      - name: "command-sub"
+        farms: [ "farm-taastrup", "farm-roskilde" ]
+        device_classes: [ "actuator","drone" ]
+        message_classes: [ "cmd" ]
+        direction: SUB

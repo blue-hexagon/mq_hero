@@ -1,8 +1,7 @@
-from typing import List
-
 from src.v2.domain.entities.device import DeviceClass, Device
-from src.v2.domain.entities.message_contract import MessageClass, MqttDirection
-from src.v2.domain.entities.policy import Policy
+from src.v2.domain.entities.mqtt_message_contract import MessageClass
+from src.v2.domain.policies.policy import Policy
+from src.v2.infrastructure.mqtt.types import MqttDirection
 
 
 class PolicyEngine:
@@ -13,12 +12,12 @@ class PolicyEngine:
     def __init__(self):
         self.rules: list[Policy] = []
 
-    def allow(self, *, dc: DeviceClass, mc: MessageClass, direction: MqttDirection):
+    def allow(self, /, device_class: DeviceClass, message_class: MessageClass, mqtt_direction: MqttDirection):
         self.rules.append(
             Policy(
-                device_class=dc,
-                message_class=mc,
-                direction=direction
+                device_class=device_class,
+                message_class=message_class,
+                direction=mqtt_direction
             )
         )
 

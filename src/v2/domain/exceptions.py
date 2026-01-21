@@ -8,6 +8,6 @@ class DeviceAlreadyExists(Exception):
         super().__init__(message)
 
 
-class CompanyAlreadyExists(Exception):
+class TenantAlreadyExists(Exception):
     def __init__(self, message: str):
         super().__init__(message)

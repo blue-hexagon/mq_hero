@@ -1,14 +1,14 @@
 import json
 import random
-import time
 
 import paho.mqtt.client as mqtt
 
 from src.v2.domain.entities.device import Device
+from src.v2.infrastructure.clock.timestamp import TimeStamp
 from src.v2.utils.store import Store
 
 
-class MqttClient():
+class MqttClient:
     def __init__(self, device: Device) -> None:
         self.device = device
         self.mqtt_client: mqtt.Client | None = None
@@ -40,13 +40,13 @@ class MqttClient():
         while True:
             payload = {
                 "sensor_id": self.device.id,
-                "ts": time.time(),
+                "ts": TimeStamp.get_utc_isof(),
                 "soil_moisture": round(random.uniform(20, 60), 2),
                 "temperature": round(random.uniform(10, 30), 2),
                 "battery": round(random.uniform(3.5, 4.2), 2)
             }
 
-            self.mqtt_client.publish(self.device.topics, json.dumps(payload), qos=1, retain=False)
+            self.mqtt_client.publish("topic", json.dumps(payload), qos=1, retain=False)
 
     def sub(self, topic):
         self.mqtt_client.subscribe(topic, qos=1)

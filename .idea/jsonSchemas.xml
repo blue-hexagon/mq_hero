@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="Tenant IoT Schema">
+          <value>
+            <SchemaInfo>
+              <option name="generatedName" value="New Schema" />
+              <option name="name" value="Tenant IoT Schema" />
+              <option name="relativePathToSchema" value="src/v2/schemas/tenant.schema.yaml" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="src/v2/playbooks/tenants.yml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>

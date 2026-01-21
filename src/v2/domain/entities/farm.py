@@ -12,23 +12,18 @@ class Farm:
     id: str
     name: str
     city: str
-    devices: Dict[Device] = field(default_factory=dict)
+    devices: Dict[str, Device] = field(default_factory=dict)
 
-    def topic_segment(self) -> TopicSegment:
+    def get_topic_segment(self) -> TopicSegment:
         return TopicSegment(TopicLevel.FARM, self.id)
 
-    def add_device(self, device: Device):
-        if device.id in self.devices:
-            raise DeviceAlreadyExists("TODO")
-        self.devices[device.id] = device
-
-    def get_device_by_id(self, device_id) -> Optional[Device]:
-        for device in self.devices:
-            if device.id == device_id:
-                return device
-        return None
+    def get_device(self, device_id: str) -> Device:
+        try:
+            return self.devices[device_id]
+        except KeyError:
+            raise KeyError(
+                f"Device '{device_id}' not found in farm '{self.id}'"
+            )
 
     def __str__(self) -> str:
         return f"Farm(id={self.id}, name={self.name}, city={self.city}, devices={len(self.devices)})"
-
-

@@ -7,7 +7,7 @@ load_dotenv()
 
 class AppSettings:
     DEVICE_NAME_LEN_MAX = 8
-
+    PROJECT_ROOT = r"C:\Users\T\Desktop\DevProjects\mqtt-test\\"
 
 class Store:
     MQTT_HOST = os.getenv("MQTT_HOST")

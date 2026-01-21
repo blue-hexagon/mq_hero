@@ -1,106 +1,193 @@
-import uuid
 from pathlib import Path
-from typing import Dict
 
 import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from jsonschema import Draft202012Validator
 
+from src.v2.domain.entities.mqtt_message_contract import MessageClass
 from src.v2.domain.entities.registry import DomainRegistry
 from src.v2.domain.entities.tenant import Tenant
 from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.farm import Farm
-from src.v2.utils.singleton import Singleton
-import yaml
-from jsonschema import Draft202012Validator
-
+from src.v2.schemas.exceptions import (
+    SchemaValidationError,
+    ReferenceValidationError,
+    DomainConstructionError,
+)
+from src.v2.utils.store import Store
 
 
 class YamlLoader:
+    """
+    Boundary adapter:
+    YAML → validated structure → domain aggregates
+    """
 
-    def __init__(self, domain_registry: DomainRegistry,
-                 fp: Path = r"C:\Users\T\Desktop\DevProjects\mqtt-test\src\v2\playbooks\tenants.yml"):
-        self.filepath = Path(fp)
-
-        self.tenants: Dict[str, Tenant] = {}
-        self.device_index: Dict[str, Device] = {}
-        self.farm_index: Dict[str, Farm] = {}
+    def __init__(
+            self,
+            domain_registry: DomainRegistry,
+            config_path: Path = Path(
+                Store().settings.PROJECT_ROOT + r"/src/v2/playbooks/tenants.yml"
+            ),
+            schema_path: Path = Path(
+                Store().settings.PROJECT_ROOT + r"/src/v2/schemas/tenant.schema.yaml"
+            ),
+    ):
+        self.config_path = Path(config_path)
+        self.schema_path = Path(schema_path)
         self.registry = domain_registry
 
-    def verify_yaml(path: str) -> dict:
+    # -------------------------
+    # Public API
+    # -------------------------
+
+    def load(self) -> None:
+        # Load twice: once for structure, once for locations
+        source_tree = self._load_yaml_with_locations(self.config_path)
+        config = self._load_yaml_plain(self.config_path)
+        schema = self._load_yaml_plain(self.schema_path)
+
+        self.validate_schema_with_locations(config, schema, source_tree)
+        self._validate_references(config["tenants"])
+        self._parse_tenants(config["tenants"])
+
+    # -------------------------
+    # YAML loading
+    # -------------------------
+
+    def _load_yaml_with_locations(self, path: Path):
+        if not path.exists():
+            raise FileNotFoundError(path)
+
+        yaml_rt = YAML()
+        yaml_rt.preserve_quotes = True
+
         with open(path, "r") as f:
-            schema = yaml.safe_load("schemas/tenant.schema.yaml")
-            validator = Draft202012Validator(schema)
+            return yaml_rt.load(f)
 
-            errors = sorted(
-                validator.iter_errors(config),
-                key=lambda e: e.path
-            )
+    def _load_yaml_plain(self, path: Path) -> dict:
+        if not path.exists():
+            raise FileNotFoundError(path)
 
-            if errors:
-                for error in errors:
-                    print(f"Schema error at {list(error.path)}:")
-                    print(f"  {error.message}")
-                raise ValueError("Invalid tenant configuration")
+        with open(path, "r") as f:
+            return yaml.safe_load(f)
 
-    def get_tenant(self, key: str) -> Tenant:
-        return self.tenants[key]
+    # -------------------------
+    # Validation
+    # -------------------------
 
-    def get_farm(self, farm_id: str) -> Farm:
-        return self.farm_index[farm_id]
+    @classmethod
+    def validate_schema_with_locations(cls, config, schema, source_tree):
+        validator = Draft202012Validator(schema)
+        errors = sorted(validator.iter_errors(config), key=lambda e: e.path)
 
-    def get_device(self, device_id: str) -> Device:
-        return self.device_index[device_id]
+        if not errors:
+            return
 
-    def all_devices(self):
-        return self.device_index.values()
+        messages = []
 
-    def all_farms(self):
-        return self.farm_index.values()
+        for err in errors:
+            path = list(err.path)
+            line, col = cls.resolve_location(source_tree, path)
 
-    def all_tenants(self):
-        return self.tenants.values()
+            loc = (
+                f"line {line}, column {col}"
+                if line is not None
+                else "unknown location")
 
-    """ Loading """
+            messages.append(f"- {loc} at {'/'.join(map(str, path))}: {err.message}")
 
-    def load(self):
-        if not self.filepath.exists():
-            raise FileNotFoundError(self.filepath)
+        raise SchemaValidationError(
+            "Schema validation failed:\n" + "\n".join(messages)
+        )
 
-        with open(self.filepath, "rt") as f:
-            raw = yaml.safe_load(f)
+    def _validate_references(self, tenants_cfg: dict) -> None:
+        for tenant_id, cfg in tenants_cfg.items():
+            device_classes = set(cfg["definitions"]["device_classes"].keys())
 
-        self._parse_tenants(raw["tenants"])
+            for farm in cfg["topology"].get("farms", []):
+                for device in farm.get("devices", []):
+                    if device["class"] not in device_classes:
+                        raise ReferenceValidationError(
+                            f"Tenant '{tenant_id}': "
+                            f"device '{device['id']}' "
+                            f"uses unknown device_class '{device['class']}'"
+                        )
 
-    def _parse_tenants(self, tenants_cfg: dict):
+    # -------------------------
+    # Domain construction
+    # -------------------------
+
+    def _parse_tenants(self, tenants_cfg: dict) -> None:
         for tenant_key, cfg in tenants_cfg.items():
             tenant = Tenant(
-                id=cfg['short_name'],
-                short_name=cfg["short_name"],
-                full_name=cfg["full_name"],
-                api_version=cfg["api_version"],
-                description=cfg.get("description", ""),
+                id=tenant_key,
+                short_name=cfg["meta"]["short_name"],
+                full_name=cfg["meta"]["full_name"],
+                api_version=cfg["meta"]["api_version"],
+                description=cfg["meta"].get("description", ""),
             )
+            for dc_id in cfg["definitions"]["device_classes"].keys():
+                tenant.register_device_class(DeviceClass(id=dc_id))
+            for mc in cfg["definitions"]["message_classes"]:
+                tenant.register_message_class(
+                    MessageClass(
+                        id=mc["id"],
+                        topic=mc["topic"]
+                    )
+                )
             self.registry.register_tenant(tenant)
-            for farm_cfg in cfg.get("farms", []):
+
+            for farm_cfg in cfg["topology"].get("farms", []):
                 farm = Farm(
-                    id=str(uuid.uuid4())[:2] + "_" + farm_cfg['name'],
+                    id=farm_cfg["id"],
                     name=farm_cfg["name"],
                     city=farm_cfg["city"],
                 )
+                tenant.register_farm(farm)
 
                 for dev_cfg in farm_cfg.get("devices", []):
-                    device = Device(
-                        id=dev_cfg.get("id"),
-                        device_class=DeviceClass(dev_cfg["type"]),
-                    )
-                    farm._add_device(device)
+                    try:
+                        device_class = tenant.get_device_class(dev_cfg["class"])
 
-                    # indexes
-                    if device.id in self.device_index:
-                        raise ValueError(f"Duplicate device id: {device.id}")
+                        device = Device(
+                            id=dev_cfg["id"],
+                            device_class=device_class,
+                            model=dev_cfg.get("model"),
+                            location=dev_cfg.get("location"),
+                        )
+                    except Exception as e:
+                        raise DomainConstructionError(
+                            f"Tenant '{tenant.id}', farm '{farm.id}', "
+                            f"device '{dev_cfg.get('id')}': {e}"
+                        ) from e
+                    tenant.register_device(farm.id, device)
 
-                    self.device_index[device.id] = device
+    # -------------------------
+    # Location resolution
+    # -------------------------
 
-                tenant.add_farm(farm)
-                self.farm_index[farm.id] = farm
+    @staticmethod
+    def resolve_location(root, path):
+        """
+        Resolve a jsonschema error.path into (line, column).
+        Falls back gracefully if exact node is unavailable.
+        """
+        node = root
 
-            self.tenants[tenant_key] = tenant
+        for p in path:
+            try:
+                if isinstance(node, CommentedMap):
+                    node = node[p]
+                elif isinstance(node, CommentedSeq):
+                    node = node[p]
+                else:
+                    break
+            except Exception:
+                break
+
+        if hasattr(node, "lc") and node.lc.line is not None:
+            return node.lc.line + 1, node.lc.col + 1
+
+        return None, None
