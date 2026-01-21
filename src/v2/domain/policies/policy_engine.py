@@ -1,30 +1,49 @@
-from src.v2.domain.entities.device import DeviceClass, Device
-from src.v2.domain.entities.mqtt_message_contract import MessageClass
+from typing import Iterable, Optional
+
+from src.v2.domain.entities.device import Device
+from src.v2.domain.entities.farm import Farm
+from src.v2.domain.entities.message_class import MessageClass
 from src.v2.domain.policies.policy import Policy
 from src.v2.infrastructure.mqtt.types import MqttDirection
 
 
 class PolicyEngine:
-    """Business logic + security rules (policy table)
-       The policy table binds MessageClass to DeviceClass
+    """Evaluates whether a concrete action is allowed
+    based on atomic policies owned by a tenant.
     """
 
-    def __init__(self):
-        self.rules: list[Policy] = []
+    def __init__(self, policies: Iterable[Policy]):
+        # Snapshot — engine is immutable
+        self._rules: tuple[Policy, ...] = tuple(policies)
 
-    def allow(self, /, device_class: DeviceClass, message_class: MessageClass, mqtt_direction: MqttDirection):
-        self.rules.append(
-            Policy(
-                device_class=device_class,
-                message_class=message_class,
-                direction=mqtt_direction
-            )
-        )
+    def is_allowed(
+            self,
+            *,
+            farm: Optional[Farm],
+            device: Device,
+            msg_class: MessageClass,
+            direction: MqttDirection,
+    ) -> bool:
+        for rule in self._rules:
+            # Device class must match
+            if rule.device_class != device.device_class:
+                continue
 
-    def is_allowed(self, device: Device, msg_class: MessageClass, direction: MqttDirection) -> bool:
-        return any(
-            rule.device_class == device.device_class and
-            rule.message_class == msg_class and
-            rule.direction == direction
-            for rule in self.rules
-        )
+            # Message class must match
+            if rule.message_class != msg_class:
+                continue
+
+            # Direction must match
+            if rule.direction != direction:
+                continue
+
+            # Farm scoping (None = global)
+            if rule.farm is not None and rule.farm != farm:
+                continue
+
+            return True
+
+        return False
+
+    def iter_rules(self):
+        yield from self._rules

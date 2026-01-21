@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=../schemas/tenant.schema.yaml
+schema_version: "1.0"
+tenants:
+  rit_agritech:
+    meta:
+      full_name: "AgriTech Solutions"
+      short_name: "agtech"
+      api_version: 1
+      description: "IoT-implementation for AgriTech Solution."
+    topology:
+      farms:
+        - id: "farm-taastrup"
+          name: "Rørendegaard"
+          city: "Taastrup"
+          devices:
+            - id: "temp-01"
+              class: "sensor"
+              model: "dht22.py"
+              location: "greenhouse"
+              publishes:
+                - metric: "temperature"
+                  unit: "celsius"
+                - metric: "humidity"
+                  unit: "percentage"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+            - id: "hum-01"
+              class: "sensor"
+              model: "dht22.py"
+              location: "greenhouse"
+              publishes:
+                - metric: "humidity"
+                  unit: "percent"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+            - id: "soil-01"
+              class: "sensor"
+              model: "capacitive_soil.py"
+              location: "field-a"
+              publishes:
+                - metric: "soil_moisture"
+                  unit: "percent"
+              interval: 300
+              policies: [ "sensor-pub" ]
+
+            - id: "co2-01"
+              class: "sensor"
+              model: "mh_z19b.py"
+              location: "barn"
+              publishes:
+                - metric: "co2"
+                  unit: "ppm"
+              interval: 120
+              policies: [ "sensor-pub" ]
+
+            - id: "power-01"
+              class: "sensor"
+              model: "ina219.py"
+              location: "pump-station"
+              publishes:
+                - metric: "power"
+                  unit: "watt"
+              interval: 5
+              policies: [ "sensor-pub" ]
+
+            - id: "irrig-01"
+              class: "actuator"
+              model: "valve-v2"
+              location: "greenhouse"
+              policies: [ "command-sub" ]
+            - id: "drone-01"
+              class: "drone"
+              model: "x4-quadcopter"
+              location: "cropfield"
+              policies: [ "command-sub" ]
+
+        - id: "farm-roskilde"
+          name: "Nordmark"
+          city: "Roskilde"
+          devices:
+            - id: "temp-01"
+              class: "sensor"
+              model: "DHT22"
+              location: "cropfield"
+              policies: [ "sensor-pub" ]
+
+    definitions:
+      locations:
+        name: "mark-1"
+        latitude: 17.70314
+        longitude: -12.70356
+      device_classes:
+        drone: { }
+        sensor: { }
+        actuator: { }
+      message_classes:
+        - id: metric
+          topic: metric
+        - id: event
+          topic: evt
+        - id: alert
+          topic: alert
+        - id: command
+          topic: cmd
+        - id: image
+          topic: img
+
+
+    policies:
+      - name: "sensor-pub"
+        farms: [ "farm-taastrup", "farm-roskilde" ]
+        device_classes: [ "sensor" ]
+        message_classes: [ "metric","event","alert" ]
+        direction: PUB
+      - name: "command-sub"
+        farms: [ "farm-taastrup", "farm-roskilde" ]
+        device_classes: [ "actuator","drone" ]
+        message_classes: [ "command" ]
+        direction: SUB

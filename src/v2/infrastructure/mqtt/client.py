@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 
 from src.v2.domain.entities.device import Device
 from src.v2.infrastructure.clock.timestamp import TimeStamp
-from src.v2.utils.store import Store
+from src.v2.infrastructure.config.store import Store
 
 
 class MqttClient:

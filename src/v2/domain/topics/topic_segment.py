@@ -1,12 +1,9 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from src.v2.domain.topics.topic_level import TopicLevel
-
-
 @dataclass(frozen=True)
 class TopicSegment:
-    level: TopicLevel
+    kind: str
     token: str  # concrete id | "+" | "#"
 
     def __post_init__(self):

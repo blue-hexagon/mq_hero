@@ -1,10 +1,12 @@
+import logging
 from dataclasses import field, dataclass
-from typing import List
 
 from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.farm import Farm
-from src.v2.domain.entities.mqtt_message_contract import MessageClass
-from src.v2.domain.topics.topic_level import TopicLevel
+from src.v2.domain.entities.message_class import MessageClass
+from src.v2.domain.policies.policy import Policy
+from src.v2.domain.policies.policy_engine import PolicyEngine
+from src.v2.domain.policies.policy_key import PolicyKey
 from src.v2.domain.topics.topic_segment import TopicSegment
 
 
@@ -16,11 +18,18 @@ class Tenant:
     api_version: int
     description: str
     farms: dict[str, Farm] = field(default_factory=dict)
-    _device_classes: dict[str, DeviceClass] = field(default_factory=dict)
-    _message_classes: dict[str, MessageClass] = field(default_factory=dict)
+    device_classes: dict[str, DeviceClass] = field(default_factory=dict)
+    message_classes: dict[str, MessageClass] = field(default_factory=dict)
+    _policies: dict[PolicyKey, Policy] = field(default_factory=dict)
+    _policy_engine = None
 
     def get_topic_segment(self) -> TopicSegment:
-        return TopicSegment(TopicLevel.TENANT, self.id)
+        return TopicSegment(kind="tenant", token=self.id)
+
+    def policy_engine(self) -> PolicyEngine:
+        if self._policy_engine is None:
+            self._policy_engine = PolicyEngine(self._policies.values())
+        return self._policy_engine
 
     def register_farm(self, farm: Farm) -> None:
         if farm.id in self.farms:
@@ -39,6 +48,39 @@ class Tenant:
 
         farm.devices[device.id] = device
 
+    def register_policy(self, policy: Policy) -> None:
+        logger = logging.getLogger(__name__)
+
+        pkey = PolicyKey(
+            tenant_id=self.id,
+            farm_id=policy.farm.id if policy.farm else None,
+            device_class_id=policy.device_class.id,
+            message_class_id=policy.message_class.id,
+            direction=policy.direction,
+        )
+        if pkey in self._policies.keys():
+            raise ValueError(
+                f"Duplicate policy in tenant '{self.id}': "
+                f"{policy.device_class.id} → {policy.message_class.id} → "
+                f"{policy.direction} "
+                f"{'in farm ' + policy.farm.id if policy.farm else '(global)'} "
+                f"(policy name: {policy.name})"
+            )
+        # pkey is a dataclass and gets a unique hash that is used
+        self._policies[pkey] = policy
+        self._policy_engine = None  # invalidate cache
+
+        logger.debug(
+            "policy created (allow)",
+            extra={
+                "tenant": self.short_name,
+                "farm": policy.farm.city,
+                "device_class": policy.device_class.id,
+                "message_class": policy.message_class.id,
+                "direction": policy.direction.name,
+            },
+        )
+
     def get_farm(self, farm_id: str) -> Farm:
         try:
             return self.farms[farm_id]
@@ -46,29 +88,30 @@ class Tenant:
             raise KeyError(f"Farm '{farm_id}' not found in tenant '{self.id}'")
 
     def register_device_class(self, dc: DeviceClass) -> None:
-        if dc.id in self._device_classes:
+        if dc.id in self.device_classes:
             raise ValueError(f"Duplicate device class '{dc.id}'")
-        self._device_classes[dc.id] = dc
+        self.device_classes[dc.id] = dc
 
     def get_device_class(self, id: str) -> DeviceClass:
         try:
-            return self._device_classes[id]
+            return self.device_classes[id]
         except KeyError:
             raise KeyError(
                 f"DeviceClass '{id}' not defined in tenant '{self.id}'"
             )
 
     def register_message_class(self, mc: MessageClass) -> None:
-        if mc.id in self._message_classes:
+        if mc.id in self.message_classes:
             raise ValueError(f"Duplicate message class '{mc.id}'")
-        self._message_classes[mc.id] = mc
+        self.message_classes[mc.id] = mc
 
     def get_message_class(self, id: str) -> MessageClass:
         try:
-            return self._message_classes[id]
+            return self.message_classes[id]
         except KeyError:
             raise KeyError(
                 f"MessageClass '{id}' not defined in tenant '{self.id}'"
             )
+
     def __str__(self) -> str:
         return f"Company(id={self.id}, short={self.short_name}, api=v{self.api_version}, farms={len(self.farms)})"

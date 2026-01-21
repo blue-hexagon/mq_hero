@@ -1,36 +1,115 @@
+import functools
+import logging
+import re
+from typing import Iterable
+
 from src.v2.domain.entities.tenant import Tenant
-from src.v2.domain.entities.mqtt_message_contract import MessageClass
-from src.v2.domain.topics.topic_builder import TopicBuilder
-from src.v2.domain.topics.topic_scope import TopicScope
+from src.v2.domain.topics.topic import TopicScope
+from src.v2.domain.topics.topic_segment import TopicSegment
 from src.v2.infrastructure.mqtt.message_contract import MqttMessageContract
 from src.v2.infrastructure.mqtt.types import MqttDirection
 
+TOKEN_PATTERN = re.compile(r"^[a-z0-9_-]+$")
+
 
 class TopicGenerationService:
+    DEFAULT_ORDER = [
+        "msp",
+        "tenant",
+        "farm",
+        "device_class",
+        "device",
+        "message",
+    ]
+
+    def __init__(self, tenant: Tenant):
+        self._tenant = tenant
+        self._topic_order = getattr(tenant, "topic_order", self.DEFAULT_ORDER)
+
+    def build(self, segments: Iterable[TopicSegment]) -> str:
+        segments = list(segments)
+
+        self._validate_required_segments(segments)
+        ordered = self._order_segments(segments)
+        self._validate_wildcards(ordered)
+
+        return "/".join(seg.token for seg in ordered)
+
+    def _validate_required_segments(self, segments: list[TopicSegment]) -> None:
+        required = {"tenant", "farm", "device", "message"}
+        present = {s.kind for s in segments}
+
+        missing = required - present
+        if missing:
+            raise ValueError(f"Missing topic segments: {missing}")
+
+    def _validate_wildcards(self, segments: list[TopicSegment]) -> None:
+        for i, seg in enumerate(segments):
+            if seg.token == "#" and i != len(segments) - 1:
+                raise ValueError("# wildcard must be last segment")
+
+    def _validate(self, segments: list[TopicSegment]) -> None:
+        for i, seg in enumerate(segments):
+
+            # Recursive wildcard must be last
+            if seg.token == "#" and i != len(segments) - 1:
+                raise ValueError("# wildcard must be last segment")
+
+            # Wildcards are otherwise valid
+            if seg.token in ("+", "#"):
+                continue
+
+            # Validate concrete token
+            if not TOKEN_PATTERN.fullmatch(seg.token):
+                raise ValueError(
+                    f"Invalid token '{seg.token}': "
+                    "must match ^[a-z0-9_-]+$"
+                )
+
+    def _order_segments(self, segments: Iterable[TopicSegment]) -> list[TopicSegment]:
+        order = {k: i for i, k in enumerate(self._topic_order)}
+        return sorted(
+            segments,
+            key=lambda s: order.get(s.kind, 999)
+        )
+
     @staticmethod
-    def generate_topics(company_lst: list[Tenant]) -> list[str]:
+    def apply_scope(base: TopicSegment, scope: TopicScope) -> TopicSegment:
+        if scope is TopicScope.SINGLE:
+            return base
+        if scope is TopicScope.ALL:
+            return TopicSegment(base.kind, "+")
+        if scope is TopicScope.ALL_RECURSIVE:
+            return TopicSegment(base.kind, "#")
+        raise ValueError("Invalid scope")
+
+    @functools.lru_cache
+    def generate_topics(self) -> list[str]:
         topics = []
 
-        for company in company_lst:
-            for farm in company.farms:
-                for device in farm.devices.values():
-                    for msg_type in MessageClass:
-                        contract = MqttMessageContract(
-                            msg_type=msg_type,  # noqa: IDE quirk (not a str)
-                            direction=MqttDirection.PUB,
-                        )
+        for farm in self._tenant.farms.values():
+            for device in farm.devices.values():
+                for message_class in self._tenant.message_classes.values():
+                    if not (self._tenant.policy_engine().is_allowed(
+                            farm=farm,
+                            device=device,
+                            msg_class=message_class,
+                            direction=MqttDirection.SUB)):
+                        logger = logging.getLogger(__name__)
+                        logger.debug("topic disallowed")
+                        continue
+                    contract = MqttMessageContract(
+                        message_class=message_class,
+                        direction=MqttDirection.PUB,
+                    )
 
-                        topic = (
-                            TopicBuilder()
-                            .add(TopicScope.SINGLE, company)
-                            .add(TopicScope.SINGLE, farm)
-                            .add(TopicScope.SINGLE, device.device_class)  # see note below
-                            .add(TopicScope.SINGLE, device)
-                            .add(TopicScope.SINGLE, contract)
-                            .build()
-                        )
-
-                        topics.append(topic)
+                    segments = [
+                        self.apply_scope(self._tenant.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(farm.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(device.device_class.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(device.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(contract.get_topic_segment(), TopicScope.SINGLE),
+                    ]
+                    topics.append(self.build(segments))
 
         return topics
-
