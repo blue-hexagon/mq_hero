@@ -1,13 +1,35 @@
 import logging
+from pathlib import Path
 from pprint import pprint
 
+from src.v2.application.services.tenant_assembler import TenantAssembler
+from src.v2.application.services.tenant_config_service import TenantConfigService
 from src.v2.infrastructure.config.settings import AppSettings
+from src.v2.infrastructure.filesystem.vfs import VirtualFS
+from src.v2.infrastructure.loaders.schema_validator import SchemaValidator
 from src.v2.infrastructure.loaders.yaml_loader import YamlLoader
 from src.v2.application.services.topic_generation_service import TopicGenerationService
 from src.v2.domain.entities.registry import DomainRegistry
 from src.v2.infrastructure.logging.logger import setup_logging
 from dotenv import load_dotenv
 import os
+
+
+def compose():
+    tcs = TenantConfigService(
+        fs=VirtualFS(
+            root=Path("src/v2/")
+        ),
+        tenant_assembler=TenantAssembler(
+            registry=DomainRegistry()
+        ),
+        yaml_loader=YamlLoader(),
+        schema_validator=SchemaValidator(),
+    )
+
+    tcs.load()
+    return tcs
+
 
 if __name__ == '__main__':
     load_dotenv()
@@ -28,17 +50,15 @@ if __name__ == '__main__':
         ],
     )
 
-    dom_reg = DomainRegistry()
-    loader = YamlLoader(domain_registry=dom_reg,)
-    loader.load()
+    tenant_config_service = compose()
+    registry = tenant_config_service.tenant_assembler.registry
 
-    for ten in dom_reg.iter_tenants():
+    for ten in registry.iter_tenants():
         topics = TopicGenerationService(tenant=ten)
-        for pol in dom_reg.iter_policies(ten.id):
-            pprint(pol, indent=1)
-        pprint(topics.generate_topics())
+        for pol in registry.iter_policies(ten.id):
+            print(pol)
+        print(topics.generate_topics())
 
-    #
     # pex.allow(farm=...,device_class=...,message_class=...,mqtt_direction=MqttDirection.PUB)
     # print(pex.get_rules())
     # TopicFactory(policy=pex)

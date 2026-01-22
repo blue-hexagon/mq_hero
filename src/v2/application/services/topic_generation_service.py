@@ -1,6 +1,8 @@
 import functools
 import logging
 import re
+from pprint import pprint
+from time import sleep
 from typing import Iterable
 
 from src.v2.domain.entities.tenant import Tenant
@@ -14,10 +16,9 @@ TOKEN_PATTERN = re.compile(r"^[a-z0-9_-]+$")
 
 class TopicGenerationService:
     DEFAULT_ORDER = [
-        "msp",
         "tenant",
         "farm",
-        "device_class",
+        "dcls",
         "device",
         "message",
     ]
@@ -35,7 +36,8 @@ class TopicGenerationService:
 
         return "/".join(seg.token for seg in ordered)
 
-    def _validate_required_segments(self, segments: list[TopicSegment]) -> None:
+    @staticmethod
+    def _validate_required_segments(segments: list[TopicSegment]) -> None:
         required = {"tenant", "farm", "device", "message"}
         present = {s.kind for s in segments}
 
@@ -43,12 +45,14 @@ class TopicGenerationService:
         if missing:
             raise ValueError(f"Missing topic segments: {missing}")
 
-    def _validate_wildcards(self, segments: list[TopicSegment]) -> None:
+    @staticmethod
+    def _validate_wildcards(segments: list[TopicSegment]) -> None:
         for i, seg in enumerate(segments):
             if seg.token == "#" and i != len(segments) - 1:
                 raise ValueError("# wildcard must be last segment")
 
-    def _validate(self, segments: list[TopicSegment]) -> None:
+    @staticmethod
+    def _validate(segments: list[TopicSegment]) -> None:
         for i, seg in enumerate(segments):
 
             # Recursive wildcard must be last
@@ -67,6 +71,7 @@ class TopicGenerationService:
                 )
 
     def _order_segments(self, segments: Iterable[TopicSegment]) -> list[TopicSegment]:
+        logging.getLogger(__name__).debug(msg=segments)
         order = {k: i for i, k in enumerate(self._topic_order)}
         return sorted(
             segments,
@@ -94,7 +99,7 @@ class TopicGenerationService:
                             farm=farm,
                             device=device,
                             msg_class=message_class,
-                            direction=MqttDirection.SUB)):
+                            direction=MqttDirection.PUB)):
                         logger = logging.getLogger(__name__)
                         logger.debug("topic disallowed")
                         continue

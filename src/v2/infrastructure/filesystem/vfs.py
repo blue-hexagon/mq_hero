@@ -1,21 +1,27 @@
-from pathlib import Path
-from typing import Optional
+import os
+from pathlib import Path, PurePath
+from typing import Union
 
-from src.v2.infrastructure.filesystem.errors import SecurityError
+PathLike = Union[str, os.PathLike[str], PurePath]
 
 
 class VirtualFS:
     def __init__(self, root: Path):
         self.root = root.resolve()
 
-    def resolve(self, relative: str) -> Path:
-        path = (self.root / relative).resolve()
+    def resolve(self, relative: PathLike) -> Path:
+        rel = Path(relative)
+        path = (self.root / rel).resolve()
+
         if not path.is_relative_to(self.root):
-            raise SecurityError("Path escape attempt detected")
+            raise PermissionError(f"Path escape attempt: {relative}")
+
         return path
 
-    def read_text(self, relative: str) -> str:
+    def read_text(self, relative: PathLike) -> str:
         path = self.resolve(relative)
+
         if not path.exists():
-            raise FileNotFoundError(relative)
+            raise FileNotFoundError(path)
+
         return path.read_text(encoding="utf-8")
