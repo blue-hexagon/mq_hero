@@ -9,3 +9,4 @@ class DeviceClass:
 
     def get_topic_segment(self) -> TopicSegment:
         return TopicSegment(kind="dcls", token=self.id)
+

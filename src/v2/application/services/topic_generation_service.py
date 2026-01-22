@@ -1,8 +1,6 @@
 import functools
 import logging
 import re
-from pprint import pprint
-from time import sleep
 from typing import Iterable
 
 from src.v2.domain.entities.tenant import Tenant
@@ -91,30 +89,37 @@ class TopicGenerationService:
     @functools.lru_cache
     def generate_topics(self) -> list[str]:
         topics = []
-
         for farm in self._tenant.farms.values():
             for device in farm.devices.values():
                 for message_class in self._tenant.message_classes.values():
-                    if not (self._tenant.policy_engine().is_allowed(
-                            farm=farm,
-                            device=device,
-                            msg_class=message_class,
-                            direction=MqttDirection.PUB)):
-                        logger = logging.getLogger(__name__)
-                        logger.debug("topic disallowed")
-                        continue
-                    contract = MqttMessageContract(
-                        message_class=message_class,
-                        direction=MqttDirection.PUB,
-                    )
+                    # TODO: Fix this
+                    for direction in MqttDirection:
+                        if not self._tenant.policy_engine().is_allowed(
+                                farm=farm,
+                                device=device,
+                                msg_class=message_class,
+                                direction=direction): # noqa; TODO: Check type
+                            logger = logging.getLogger(__name__)
+                            logger.debug("topic disallowed", extra={
+                                "tenant": self._tenant.short_name,
+                                "farm": farm,
+                                "device_class": device.device_class,
+                                "message_class": message_class.topic,
+                                "direction": direction,
+                            })
+                            continue
+                        contract = MqttMessageContract(
+                            message_class=message_class,
+                            direction=MqttDirection.PUB,
+                        )
 
-                    segments = [
-                        self.apply_scope(self._tenant.get_topic_segment(), TopicScope.SINGLE),
-                        self.apply_scope(farm.get_topic_segment(), TopicScope.SINGLE),
-                        self.apply_scope(device.device_class.get_topic_segment(), TopicScope.SINGLE),
-                        self.apply_scope(device.get_topic_segment(), TopicScope.SINGLE),
-                        self.apply_scope(contract.get_topic_segment(), TopicScope.SINGLE),
-                    ]
-                    topics.append(self.build(segments))
+                        segments = [
+                            self.apply_scope(self._tenant.get_topic_segment(), TopicScope.SINGLE),
+                            self.apply_scope(farm.get_topic_segment(), TopicScope.SINGLE),
+                            self.apply_scope(device.device_class.get_topic_segment(), TopicScope.SINGLE),
+                            self.apply_scope(device.get_topic_segment(), TopicScope.SINGLE),
+                            self.apply_scope(contract.get_topic_segment(), TopicScope.SINGLE),
+                        ]
+                        topics.append(self.build(segments))
 
         return topics

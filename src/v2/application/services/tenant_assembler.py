@@ -5,6 +5,7 @@ from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.message_class import MessageClass
 from src.v2.domain.policies.policy import Policy
 from src.v2.domain.entities.registry import DomainRegistry
+from src.v2.domain.entities.mqtt_broker import MqttBroker
 from src.v2.infrastructure.mqtt.types import MqttDirection
 
 
@@ -25,6 +26,17 @@ class TenantAssembler:
                 api_version=cfg["meta"]["api_version"],
                 description=cfg["meta"].get("description", ""),
             )
+            for mqtt_cfg in cfg["meta"]["mqtt"]:
+                mqtt_broker = MqttBroker(
+                    tenant_id=tenant_key,
+                    ref=mqtt_cfg["id"],
+                    mqtt_username=mqtt_cfg["username"],
+                    mqtt_password=mqtt_cfg["password"],
+                    mqtt_host=mqtt_cfg["ipv4"],
+                    mqtt_port=mqtt_cfg.get("port", 1883),
+                    keepalive=mqtt_cfg["keepalive"]
+                )
+                tenant.register_mqtt_broker(mqtt_broker)
 
             # Device classes
             for dc_id in cfg["definitions"]["device_classes"]:
@@ -61,7 +73,8 @@ class TenantAssembler:
             for policy_cfg in cfg["policies"]:
                 self._expand_policies(tenant, policy_cfg)
 
-    def _expand_policies(self, tenant: Tenant, policy_cfg: dict) -> None:
+    @staticmethod
+    def _expand_policies(tenant: Tenant, policy_cfg: dict) -> None:
         policy_name = policy_cfg["name"]
 
         farms = (

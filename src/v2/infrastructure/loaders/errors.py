@@ -6,6 +6,10 @@ class SchemaValidationError(ConfigError):
     pass
 
 
+class SchemaParsingError(ConfigError):
+    pass
+
+
 class ReferenceValidationError(ConfigError):
     pass
 

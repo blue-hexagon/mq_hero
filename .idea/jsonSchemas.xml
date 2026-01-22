@@ -8,11 +8,11 @@
             <SchemaInfo>
               <option name="generatedName" value="New Schema" />
               <option name="name" value="Tenant IoT Schema" />
-              <option name="relativePathToSchema" value="src/v2/schemas/tenant.schema.yaml" />
+              <option name="relativePathToSchema" value="src/v2/assets/schemas/tenant.schema.yaml" />
               <option name="patterns">
                 <list>
                   <Item>
-                    <option name="path" value="src/v2/playbooks/tenants.yml" />
+                    <option name="path" value="src/v2/assets/playbooks/tenants.yml" />
                   </Item>
                 </list>
               </option>

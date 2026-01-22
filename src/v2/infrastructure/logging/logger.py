@@ -59,10 +59,10 @@ class TruncatingFormatter(logging.Formatter):
 # -------------------------
 
 def setup_logging(
-    *,
-    level: int = logging.INFO,
-    app_name: str = "iot-hero",
-    enable_debug_modules: Optional[list[str]] = None,
+        *,
+        level: int = logging.INFO,
+        app_name: str = "iot-hero",  # noqa
+        enable_debug_modules: Optional[list[str]] = None,
 ) -> None:
     """
     Global, idempotent logging configuration.
@@ -91,7 +91,7 @@ def setup_logging(
                 "dir=%(direction)s | %(message)s"
             ),
             datefmt="%H:%M:%S",
-            max_parts=2,   # 👈 last two levels only
+            max_parts=2,
         )
 
         handler.setFormatter(formatter)

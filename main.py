@@ -4,7 +4,6 @@ from pprint import pprint
 
 from src.v2.application.services.tenant_assembler import TenantAssembler
 from src.v2.application.services.tenant_config_service import TenantConfigService
-from src.v2.infrastructure.config.settings import AppSettings
 from src.v2.infrastructure.filesystem.vfs import VirtualFS
 from src.v2.infrastructure.loaders.schema_validator import SchemaValidator
 from src.v2.infrastructure.loaders.yaml_loader import YamlLoader
@@ -12,7 +11,6 @@ from src.v2.application.services.topic_generation_service import TopicGeneration
 from src.v2.domain.entities.registry import DomainRegistry
 from src.v2.infrastructure.logging.logger import setup_logging
 from dotenv import load_dotenv
-import os
 
 
 def compose():
@@ -33,14 +31,13 @@ def compose():
 
 if __name__ == '__main__':
     load_dotenv()
-    settings = AppSettings(
-        mqtt_host=os.getenv("MQTT_HOST"),
-        mqtt_port=int(os.getenv("MQTT_PORT", 1883)),
-        mqtt_username=os.getenv("MQTT_USERNAME"),
-        mqtt_password=os.getenv("MQTT_PASSWORD"),
-        keep_alive=int(os.getenv("KEEP_ALIVE", 600)),
-    )
-
+    # test_settings = AppSettings(
+    #     mqtt_host="127.0.0.1",
+    #     mqtt_port=1883,
+    #     mqtt_username="sensor_client",
+    #     mqtt_password="mysecret",
+    #     keep_alive=60,
+    # )
     setup_logging(
         level=logging.INFO,
         enable_debug_modules=[
@@ -49,15 +46,16 @@ if __name__ == '__main__':
             "src.v2.domain.entities.tenant"
         ],
     )
-
     tenant_config_service = compose()
     registry = tenant_config_service.tenant_assembler.registry
 
     for ten in registry.iter_tenants():
+        for broker in registry.iter_mqtt_brokers(tenant_id=ten.id):
+            print(broker)
         topics = TopicGenerationService(tenant=ten)
-        for pol in registry.iter_policies(ten.id):
-            print(pol)
-        print(topics.generate_topics())
+        # for pol in registry.iter_policies(ten.id):
+        #     pprint(pol, depth=2)
+        pprint(topics.generate_topics())
 
     # pex.allow(farm=...,device_class=...,message_class=...,mqtt_direction=MqttDirection.PUB)
     # print(pex.get_rules())

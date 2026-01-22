@@ -4,35 +4,37 @@ import random
 import paho.mqtt.client as mqtt
 
 from src.v2.domain.entities.device import Device
+from src.v2.domain.entities.mqtt_broker import MqttBroker
 from src.v2.infrastructure.clock.timestamp import TimeStamp
-from src.v2.infrastructure.config.store import Store
 
 
 class MqttClient:
     def __init__(self, device: Device) -> None:
         self.device = device
         self.mqtt_client: mqtt.Client | None = None
+        self.mqtt_broker: MqttBroker | None = None
 
-    def create_client(self) -> mqtt.Client:
+    def create_client(self, broker: MqttBroker) -> mqtt.Client:
         mqtt_client = mqtt.Client(client_id=self.device.id, clean_session=False)
         mqtt_client.reconnect_delay_set(min_delay=1, max_delay=30)
-        if Store.MQTT_USERNAME:
+        if broker.mqtt_username:
             mqtt_client.username_pw_set(
-                Store.MQTT_USERNAME,
-                Store.MQTT_PASSWORD
+                broker.mqtt_username,
+                broker.mqtt_password
             )
         mqtt_client.on_connect = MqttClient.on_connect
         mqtt_client.on_disconnect = MqttClient.on_disconnect
         mqtt_client.on_message = MqttClient.on_message
 
         self.mqtt_client = mqtt_client
+        self.mqtt_broker = broker
         return mqtt_client
 
     def connect(self) -> bool | Exception:
         if self.mqtt_client is None:
             raise RuntimeError("MQTT Client has not been initialized!")
 
-        self.mqtt_client.connect(Store.MQTT_HOST, Store.MQTT_PORT)
+        self.mqtt_client.connect(self.mqtt_broker.mqtt_host, self.mqtt_broker.mqtt_port)
         self.mqtt_client.loop_start()
         return True
 
@@ -52,14 +54,14 @@ class MqttClient:
         self.mqtt_client.subscribe(topic, qos=1)
 
     @staticmethod
-    def on_connect(client: mqtt.Client, userdata, flags, rc):
+    def on_connect(client: mqtt.Client, userdata, flags, rc):  # noqa
         print(f"[+] Connected:", rc)
 
     @staticmethod
-    def on_disconnect(client: mqtt.Client, userdata, rc):
+    def on_disconnect(client: mqtt.Client, userdata, rc):  # noqa
         print("[!] Disconnected – retrying")
 
     @staticmethod
-    def on_message(client, userdata, msg):
+    def on_message(client, userdata, msg):  # noqa
         data = json.loads(msg.payload.decode())
         print(f"[/] {msg.topic}: {data}")

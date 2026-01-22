@@ -1,4 +1,4 @@
-from src.v2.infrastructure.config.settings import AppSettings
+from src.v2.domain.entities.mqtt_broker import MqttBroker
 
 
 class RuntimeContext:
@@ -9,6 +9,7 @@ class RuntimeContext:
     - Must never read environment variables
     - Must never contain domain logic
     """
-    def __init__(self, settings: AppSettings):
+    def __init__(self, settings: MqttBroker):
         self.settings = settings
         self.clients: dict[str, object] = {}
+

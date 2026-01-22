@@ -4,6 +4,7 @@ from dataclasses import field, dataclass
 from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.farm import Farm
 from src.v2.domain.entities.message_class import MessageClass
+from src.v2.domain.entities.mqtt_broker import MqttBroker
 from src.v2.domain.policies.policy import Policy
 from src.v2.domain.policies.policy_engine import PolicyEngine
 from src.v2.domain.policies.policy_key import PolicyKey
@@ -18,9 +19,10 @@ class Tenant:
     api_version: int
     description: str
     farms: dict[str, Farm] = field(default_factory=dict)
+    mqtt_brokers: dict[str, MqttBroker] = field(default_factory=dict)
     device_classes: dict[str, DeviceClass] = field(default_factory=dict)
     message_classes: dict[str, MessageClass] = field(default_factory=dict)
-    _policies: dict[PolicyKey, Policy] = field(default_factory=dict)
+    policies: dict[PolicyKey, Policy] = field(default_factory=dict)
     _policy_engine = None
 
     def get_topic_segment(self) -> TopicSegment:
@@ -28,8 +30,13 @@ class Tenant:
 
     def policy_engine(self) -> PolicyEngine:
         if self._policy_engine is None:
-            self._policy_engine = PolicyEngine(self._policies.values())
+            self._policy_engine = PolicyEngine(self.policies.values())
         return self._policy_engine
+
+    def register_mqtt_broker(self, mqtt_broker: MqttBroker):
+        if mqtt_broker.ref in self.mqtt_brokers:
+            raise Exception("")
+        self.mqtt_brokers[mqtt_broker.ref] = mqtt_broker
 
     def register_farm(self, farm: Farm) -> None:
         if farm.id in self.farms:
@@ -58,7 +65,7 @@ class Tenant:
             message_class_id=policy.message_class.id,
             direction=policy.direction,
         )
-        if pkey in self._policies.keys():
+        if pkey in self.policies.keys():
             raise ValueError(
                 f"Duplicate policy in tenant '{self.id}': "
                 f"{policy.device_class.id} → {policy.message_class.id} → "
@@ -67,7 +74,7 @@ class Tenant:
                 f"(policy name: {policy.name})"
             )
         # pkey is a dataclass and gets a unique hash that is used
-        self._policies[pkey] = policy
+        self.policies[pkey] = policy
         self._policy_engine = None  # invalidate cache
 
         logger.debug(
@@ -87,17 +94,23 @@ class Tenant:
         except KeyError:
             raise KeyError(f"Farm '{farm_id}' not found in tenant '{self.id}'")
 
+    def get_mqtt_broker(self, ref: str) -> MqttBroker:
+        try:
+            return self.mqtt_brokers[ref]
+        except KeyError:
+            raise KeyError(f"MqttBroker '{ref}' not found in tenant '{self.id}'")
+
     def register_device_class(self, dc: DeviceClass) -> None:
         if dc.id in self.device_classes:
             raise ValueError(f"Duplicate device class '{dc.id}'")
         self.device_classes[dc.id] = dc
 
-    def get_device_class(self, id: str) -> DeviceClass:
+    def get_device_class(self, ref: str) -> DeviceClass:
         try:
-            return self.device_classes[id]
+            return self.device_classes[ref]
         except KeyError:
             raise KeyError(
-                f"DeviceClass '{id}' not defined in tenant '{self.id}'"
+                f"DeviceClass '{ref}' not defined in tenant '{self.id}'"
             )
 
     def register_message_class(self, mc: MessageClass) -> None:
@@ -105,12 +118,12 @@ class Tenant:
             raise ValueError(f"Duplicate message class '{mc.id}'")
         self.message_classes[mc.id] = mc
 
-    def get_message_class(self, id: str) -> MessageClass:
+    def get_message_class(self, ref: str) -> MessageClass:
         try:
-            return self.message_classes[id]
+            return self.message_classes[ref]
         except KeyError:
             raise KeyError(
-                f"MessageClass '{id}' not defined in tenant '{self.id}'"
+                f"MessageClass '{ref}' not defined in tenant '{self.id}'"
             )
 
     def __str__(self) -> str:

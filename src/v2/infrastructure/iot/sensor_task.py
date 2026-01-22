@@ -2,6 +2,8 @@ import asyncio
 import random
 import time
 
+from src.v2.infrastructure.iot.errors import SensorReadError
+
 
 async def sensor_task(sensor):
     interval = sensor.interval
@@ -13,9 +15,9 @@ async def sensor_task(sensor):
         start = time.time()
 
         try:
-            data = await sensor.read()
+            data = await sensor.read()  # noqa
             # publish_sensor_data(sensor, data)
-        except Exception as e:
+        except SensorReadError as e:  # noqa
             pass  # handle_sensor_error(sensor, e)
 
         await asyncio.sleep(max(0, interval - (time.time() - start)))

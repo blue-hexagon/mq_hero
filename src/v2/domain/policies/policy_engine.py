@@ -33,8 +33,8 @@ class PolicyEngine:
             if rule.message_class != msg_class:
                 continue
 
-            # Direction must match
-            if rule.direction != direction:
+            # Rule direction must match
+            if rule.direction != direction or rule.direction == MqttDirection.BOTH:
                 continue
 
             # Farm scoping (None = global)

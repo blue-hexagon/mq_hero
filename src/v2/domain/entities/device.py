@@ -21,4 +21,5 @@ class Device:
         self.messages.append(contract)
 
     def __str__(self) -> str:
-        return f"Device(id={self.id}, class={self.device_class.id}, model={self.model}, location={self.location}, topic_segment={self.topic_segment()})"
+        return (f"Device(id={self.id}, class={self.device_class.id}, model={self.model}, location={self.location}, "
+                f"topic_segment={self.get_topic_segment()})")

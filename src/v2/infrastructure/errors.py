@@ -5,7 +5,4 @@ class InfrastructureError(AppError):
     code = "infrastructure_error"
 
 
-# class SecurityError(InfrastructureError):
-#     code = "farm_already_exists"
-
 

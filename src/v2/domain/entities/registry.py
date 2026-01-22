@@ -1,7 +1,7 @@
-from src.v2.domain.entities.device import Device, DeviceClass
+from src.v2.domain.entities.device import DeviceClass
 from src.v2.domain.entities.message_class import MessageClass
 
-from typing import Dict
+from typing import Dict, Iterable
 
 from src.v2.domain.entities.device import Device
 from src.v2.domain.entities.farm import Farm
@@ -81,18 +81,27 @@ class DomainRegistry:
         It reflects a stable domain relationship
         Its name contains no business language """
 
-    def iter_tenants(self):
+    def iter_tenants(self) -> Iterable[Tenant]:
         yield from self._tenants.values()
 
     def iter_policies(self, tenant_id: str):
-        yield self.get_tenant(tenant_id)._policies.values()
+        tenant = self.get_tenant(tenant_id)
+        yield tenant.policies.values()
+
+    def iter_mqtt_brokers(self, tenant_id: str | None = None):
+        if tenant_id:
+            tenant = self.get_tenant(tenant_id)
+            yield tenant.mqtt_brokers.values()
+        else:
+            for tenant in self.iter_tenants():
+                yield from tenant.mqtt_brokers.values()
 
     def iter_farms(self, tenant_id: str | None = None):
         if tenant_id:
             tenant = self.get_tenant(tenant_id)
             yield from tenant.farms.values()
         else:
-            for tenant in self._tenants.values():
+            for tenant in self.iter_tenants():
                 yield from tenant.farms.values()
 
     def iter_devices(
@@ -126,10 +135,18 @@ class DomainRegistry:
             "(farm IDs are tenant-scoped)"
         )
 
-    def iter_device_classes(self, tenant_id: str):
-        tenant = self.get_tenant(tenant_id)
-        yield from tenant.device_classes.values()
+    def iter_device_classes(self, tenant_id: str | None = None):
+        if tenant_id:
+            tenant = self.get_tenant(tenant_id)
+            yield from tenant.device_classes.values()
+        else:
+            for tenant in self.iter_tenants():
+                tenant.device_classes.values()
 
-    def iter_message_classes(self, tenant_id: str):
-        tenant = self.get_tenant(tenant_id)
-        yield from tenant.message_classes.values()
+    def iter_message_classes(self, tenant_id: str | None = None):
+        if tenant_id:
+            tenant = self.get_tenant(tenant_id)
+            yield from tenant.message_classes.values()
+        else:
+            for tenant in self.iter_tenants():
+                yield from tenant.message_classes.values()

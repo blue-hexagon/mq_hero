@@ -7,6 +7,13 @@ tenants:
       short_name: "agtech"
       api_version: 1
       description: "IoT-implementation for AgriTech Solution."
+      mqtt:
+        - id: "testsetup"
+          username: "testuser"
+          password: "testpassword"
+          ipv4: "127.0.0.1"
+          port: 1883
+          keepalive: 600
     topology:
       farms:
         - id: "farm-taastrup"
@@ -53,7 +60,6 @@ tenants:
                 - metric: "co2"
                   unit: "ppm"
               interval: 120
-              policies: [ "sensor-pub" ]
 
             - id: "power-01"
               class: "sensor"
@@ -118,4 +124,4 @@ tenants:
         farms: [ "farm-taastrup", "farm-roskilde" ]
         device_classes: [ "actuator","drone" ]
         message_classes: [ "command" ]
-        direction: SUB
+        direction: BOTH

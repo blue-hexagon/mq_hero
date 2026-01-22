@@ -1,9 +1,7 @@
-# infrastructure/loaders/schema_validator.py
-
 from jsonschema import Draft202012Validator
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from src.v2.infrastructure.loaders.errors import ReferenceValidationError, SchemaValidationError
+from src.v2.infrastructure.loaders.errors import ReferenceValidationError, SchemaValidationError, SchemaParsingError
 
 
 class SchemaValidator:
@@ -43,7 +41,8 @@ class SchemaValidator:
             "Schema validation failed:\n" + "\n".join(messages)
         )
 
-    def validate_references(self, tenants_cfg: dict) -> None:
+    @staticmethod
+    def validate_references(tenants_cfg: dict) -> None:
         for tenant_id, cfg in tenants_cfg.items():
             device_classes = set(cfg["definitions"]["device_classes"].keys())
 
@@ -67,7 +66,7 @@ class SchemaValidator:
                     node = node[p]
                 else:
                     break
-            except Exception:
+            except SchemaParsingError():
                 break
 
         if hasattr(node, "lc") and node.lc.line is not None:

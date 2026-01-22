@@ -26,4 +26,5 @@ class MqttMessageContract:
             raise ValueError("qos must be 0, 1, or 2")
 
     def __str__(self) -> str:
-        return f"MessageContract(msg_class={self.message_class.id}, dir={self.direction.value}, qos={self.qos}, retained={self.retained})"
+        return (f"MessageContract(msg_class={self.message_class.id}, dir={self.direction.value}, qos={self.qos}"
+                f", retained={self.retained})")
