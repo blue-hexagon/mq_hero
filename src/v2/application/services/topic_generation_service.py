@@ -3,6 +3,8 @@ import logging
 import re
 from typing import Iterable
 
+from src.v2.application.services.errors import TopicDuplicationError
+from src.v2.domain.entities.device import Device
 from src.v2.domain.entities.tenant import Tenant
 from src.v2.domain.topics.topic import TopicScope
 from src.v2.domain.topics.topic_segment import TopicSegment
@@ -33,7 +35,23 @@ class TopicGenerationService:
         self._validate_wildcards(ordered)
 
         return "/".join(seg.token for seg in ordered)
+    def metric_topic(self, device: Device) -> str:
+        return self.build([
+            self._tenant.get_topic_segment(),
+            device.farm.get_topic_segment(),
+            device.device_class.get_topic_segment(),
+            device.get_topic_segment(),
+            TopicSegment("message", "metric"),
+        ])
 
+    def alert_topic(self, device: Device) -> str:
+        return self.build([
+            self._tenant.get_topic_segment(),
+            device.farm.get_topic_segment(),
+            device.device_class.get_topic_segment(),
+            device.get_topic_segment(),
+            TopicSegment("message", "alert"),
+        ])
     @staticmethod
     def _validate_required_segments(segments: list[TopicSegment]) -> None:
         required = {"tenant", "farm", "device", "message"}
@@ -89,37 +107,47 @@ class TopicGenerationService:
     @functools.lru_cache
     def generate_topics(self) -> list[str]:
         topics = []
+        logger = logging.getLogger(__name__)
+
         for farm in self._tenant.farms.values():
             for device in farm.devices.values():
                 for message_class in self._tenant.message_classes.values():
-                    # TODO: Fix this
-                    for direction in MqttDirection:
-                        if not self._tenant.policy_engine().is_allowed(
+                    allowed = False
+                    for direction in (MqttDirection.PUB, MqttDirection.SUB):
+                        if self._tenant.policy_engine().is_allowed(
                                 farm=farm,
                                 device=device,
                                 msg_class=message_class,
-                                direction=direction): # noqa; TODO: Check type
-                            logger = logging.getLogger(__name__)
-                            logger.debug("topic disallowed", extra={
-                                "tenant": self._tenant.short_name,
-                                "farm": farm,
-                                "device_class": device.device_class,
-                                "message_class": message_class.topic,
-                                "direction": direction,
-                            })
-                            continue
-                        contract = MqttMessageContract(
-                            message_class=message_class,
-                            direction=MqttDirection.PUB,
-                        )
+                                direction=direction
+                        ):
+                            allowed = True
+                            break
 
-                        segments = [
-                            self.apply_scope(self._tenant.get_topic_segment(), TopicScope.SINGLE),
-                            self.apply_scope(farm.get_topic_segment(), TopicScope.SINGLE),
-                            self.apply_scope(device.device_class.get_topic_segment(), TopicScope.SINGLE),
-                            self.apply_scope(device.get_topic_segment(), TopicScope.SINGLE),
-                            self.apply_scope(contract.get_topic_segment(), TopicScope.SINGLE),
-                        ]
-                        topics.append(self.build(segments))
+                    if not allowed:
+                        continue
+
+                    contract = MqttMessageContract(
+                        message_class=message_class,
+                        direction=MqttDirection.PUB,  # irrelevant for topic identity
+                    )
+
+                    segments = [
+                        self.apply_scope(self._tenant.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(farm.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(device.device_class.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(device.get_topic_segment(), TopicScope.SINGLE),
+                        self.apply_scope(contract.get_topic_segment(), TopicScope.SINGLE),
+                    ]
+
+                    topics.append(self.build(segments))
+        if len(topics) != len(set(topics)):
+            from collections import Counter
+
+            counts = Counter(topics)
+            duplicates = [t for t, c in counts.items() if c > 1]
+
+            raise TopicDuplicationError(
+                f"Duplicate topics generated: {duplicates}"
+            )
 
         return topics

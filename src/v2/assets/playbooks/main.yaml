@@ -8,12 +8,19 @@ tenants:
       api_version: 1
       description: "IoT-implementation for AgriTech Solution."
       mqtt:
-        - id: "testsetup"
+        - id: "test"
           username: "testuser"
           password: "testpassword"
           ipv4: "127.0.0.1"
           port: 1883
           keepalive: 600
+        - id: "prod"
+          username: "agritech"
+          password: "5ecur3Pa55w0rd"
+          ipv4: "10.100.0.33"
+          port: 1883
+          keepalive: 600
+
     topology:
       farms:
         - id: "farm-taastrup"
@@ -45,7 +52,7 @@ tenants:
             - id: "soil-01"
               class: "sensor"
               model: "capacitive_soil.py"
-              location: "field-a"
+              location: "northern-field"
               publishes:
                 - metric: "soil_moisture"
                   unit: "percent"
@@ -75,12 +82,15 @@ tenants:
               class: "actuator"
               model: "valve-v2"
               location: "greenhouse"
+              interval: 5
               policies: [ "command-sub" ]
+
             - id: "drone-01"
               class: "drone"
               model: "x4-quadcopter"
               location: "cropfield"
               policies: [ "command-sub" ]
+              interval: 5
 
         - id: "farm-roskilde"
           name: "Nordmark"
@@ -88,37 +98,48 @@ tenants:
           devices:
             - id: "temp-01"
               class: "sensor"
-              model: "DHT22"
+              model: "dht22.py"
               location: "cropfield"
               policies: [ "sensor-pub" ]
+              interval: 5
 
     definitions:
       locations:
-        name: "mark-1"
-        latitude: 17.70314
-        longitude: -12.70356
+        - name: "greenhouse"
+          latitude: 55.67390
+          longitude: 12.56550
+        - name: "northern-field"
+          latitude: 56.26392
+          longitude: 10.50178
+        - name: "pump-station"
+          latitude: 54.93222
+          longitude: 9.80750
+        - name: "barn"
+          latitude: 55.40375
+          longitude: 11.35420
+        - name: "cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
       device_classes:
         drone: { }
         sensor: { }
         actuator: { }
       message_classes:
         - id: metric
-          topic: metric
-        - id: event
-          topic: evt
+          topic: metrics
         - id: alert
-          topic: alert
+          topic: alerts
         - id: command
-          topic: cmd
+          topic: cmds
         - id: image
-          topic: img
-
+          topic: images
 
     policies:
       - name: "sensor-pub"
         farms: [ "farm-taastrup", "farm-roskilde" ]
         device_classes: [ "sensor" ]
-        message_classes: [ "metric","event","alert" ]
+        message_classes: [ "metric","alert" ]
         direction: PUB
       - name: "command-sub"
         farms: [ "farm-taastrup", "farm-roskilde" ]

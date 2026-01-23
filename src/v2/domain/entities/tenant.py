@@ -3,8 +3,10 @@ from dataclasses import field, dataclass
 
 from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.farm import Farm
+from src.v2.domain.entities.location import Location
 from src.v2.domain.entities.message_class import MessageClass
-from src.v2.domain.entities.mqtt_broker import MqttBroker
+from src.v2.domain.errors import LocationAlreadyExists
+from src.v2.infrastructure.mqtt.entity.broker import MqttBroker
 from src.v2.domain.policies.policy import Policy
 from src.v2.domain.policies.policy_engine import PolicyEngine
 from src.v2.domain.policies.policy_key import PolicyKey
@@ -22,6 +24,7 @@ class Tenant:
     mqtt_brokers: dict[str, MqttBroker] = field(default_factory=dict)
     device_classes: dict[str, DeviceClass] = field(default_factory=dict)
     message_classes: dict[str, MessageClass] = field(default_factory=dict)
+    locations: dict[str, Location] = field(default_factory=dict)
     policies: dict[PolicyKey, Policy] = field(default_factory=dict)
     _policy_engine = None
 
@@ -52,8 +55,13 @@ class Tenant:
             raise ValueError(
                 f"Device '{device.id}' already exists in farm '{farm.id}'"
             )
-
         farm.devices[device.id] = device
+
+    def register_location(self, location: Location):
+        if location.name in self.locations:
+            raise LocationAlreadyExists(f"{location.name} already exists in tenant '{self.short_name}")
+        else:
+            self.locations[location.name] = location
 
     def register_policy(self, policy: Policy) -> None:
         logger = logging.getLogger(__name__)

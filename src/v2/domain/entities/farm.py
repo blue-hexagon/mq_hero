@@ -25,3 +25,5 @@ class Farm:
 
     def __str__(self) -> str:
         return f"Farm(id={self.id}, name={self.name}, city={self.city}, devices={len(self.devices)})"
+    def __repr__(self) -> str:
+        return f"{self.name}::{self.devices}"

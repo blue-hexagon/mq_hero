@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Iterable, Optional
 
 from src.v2.domain.entities.device import Device
@@ -24,7 +25,9 @@ class PolicyEngine:
             msg_class: MessageClass,
             direction: MqttDirection,
     ) -> bool:
+
         for rule in self._rules:
+
             # Device class must match
             if rule.device_class != device.device_class:
                 continue
@@ -33,8 +36,11 @@ class PolicyEngine:
             if rule.message_class != msg_class:
                 continue
 
-            # Rule direction must match
-            if rule.direction != direction or rule.direction == MqttDirection.BOTH:
+            # Direction must match
+            if not (
+                    rule.direction == MqttDirection.BOTH
+                    or rule.direction == direction
+            ):
                 continue
 
             # Farm scoping (None = global)

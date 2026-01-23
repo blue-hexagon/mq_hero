@@ -28,7 +28,7 @@ class TenantConfigService:
     def load(self) -> None:
         # Resolve assets
         config_path = FilesystemPolicy.resolve_allowed_path(
-            AssetKind.PLAYBOOK, "tenants.yml"
+            AssetKind.PLAYBOOK, "main.yaml"
         )
         schema_path = FilesystemPolicy.resolve_allowed_path(
             AssetKind.SCHEMA, "tenant.schema.yaml"

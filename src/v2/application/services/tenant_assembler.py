@@ -1,11 +1,13 @@
 # application/services/tenant_assembler.py
+from src.v2.domain.entities.location import Location
 from src.v2.domain.entities.tenant import Tenant
 from src.v2.domain.entities.farm import Farm
 from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.message_class import MessageClass
+from src.v2.domain.errors import LocationDontExists
 from src.v2.domain.policies.policy import Policy
 from src.v2.domain.entities.registry import DomainRegistry
-from src.v2.domain.entities.mqtt_broker import MqttBroker
+from src.v2.infrastructure.mqtt.entity.broker import MqttBroker
 from src.v2.infrastructure.mqtt.types import MqttDirection
 
 
@@ -47,6 +49,11 @@ class TenantAssembler:
                 tenant.register_message_class(
                     MessageClass(id=mc["id"], topic=mc["topic"])
                 )
+            # Tenant Locations
+            for loc in cfg["definitions"]["locations"]:
+                tenant.register_location(
+                    Location(name=loc['name'], latitude=loc['latitude'], longitude=loc['longitude'])
+                )
 
             self.registry.register_tenant(tenant)
 
@@ -61,11 +68,23 @@ class TenantAssembler:
 
                 for dev_cfg in farm_cfg.get("devices", []):
                     device_class = tenant.get_device_class(dev_cfg["class"])
+                    device_location = None
+                    if dev_cfg.get("location"):
+                        try:
+                            device_location = self.registry.get_location(
+                                tenant_id=tenant_key,
+                                name=dev_cfg.get("location")
+                            )
+                        except LocationDontExists as e:
+                            raise ReferenceError(e)
+
                     device = Device(
                         id=dev_cfg["id"],
                         device_class=device_class,
                         model=dev_cfg.get("model"),
-                        location=dev_cfg.get("location"),
+                        location=device_location,
+                        interval=dev_cfg.get("interval"),
+                        _farm=farm,
                     )
                     tenant.register_device(farm.id, device)
 

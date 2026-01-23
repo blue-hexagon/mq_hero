@@ -289,7 +289,7 @@ $defs:
 
     properties:
       locations:
-        type: object
+        type: array
         title: Locations
         minItems: 1
         items:

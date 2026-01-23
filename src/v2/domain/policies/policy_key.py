@@ -11,3 +11,6 @@ class PolicyKey:
     device_class_id: str
     message_class_id: str
     direction: MqttDirection
+
+    def __repr__(self) -> str:
+        return self.tenant_id

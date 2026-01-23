@@ -7,5 +7,8 @@ class MqttDirection(str, Enum):
     SUB = "subscribe"
     BOTH = "publish_and_subscribe"
 
+    def __repr__(self) -> str:
+        return f"{self.name}"
+
 
 QoS = Literal[0, 1, 2]

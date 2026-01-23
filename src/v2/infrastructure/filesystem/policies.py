@@ -1,5 +1,5 @@
 from pathlib import PurePosixPath
-from .asset_kind import AssetKind  # or same file
+from .asset_kind import AssetKind
 
 
 class FilesystemPolicy:

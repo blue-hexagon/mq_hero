@@ -1,5 +1,68 @@
-# config = yaml_repo.load()
-# companies = provisioning_service.provision(config)
-# policies = topic_service.generate_policies(companies)
-# mqtt.apply_policies(policies)
-# mqtt.start()
+import logging
+from pathlib import Path
+
+from src.v2.application.services.sensor_attachment_service import SensorAttachmentService
+from src.v2.application.services.tenant_assembler import TenantAssembler
+from src.v2.application.services.tenant_config_service import TenantConfigService
+from src.v2.application.services.topic_generation_service import TopicGenerationService
+
+from src.v2.domain.entities.registry import DomainRegistry
+from src.v2.domain.entities.tenant import Tenant
+from src.v2.edge_agent.device_runner import DeviceRunner
+from src.v2.edge_agent.farm_runner import FarmRunner
+from src.v2.edge_agent.mqtt_publisher import MqttPublisher
+from src.v2.edge_agent.runtime import TenantRuntime
+from src.v2.edge_agent.scheduler import SensorScheduler
+
+from src.v2.infrastructure.filesystem.vfs import VirtualFS
+from src.v2.infrastructure.loaders.schema_validator import SchemaValidator
+from src.v2.infrastructure.loaders.yaml_loader import YamlLoader
+from src.v2.infrastructure.mqtt.entity.client import MqttClient
+import src.v2.infrastructure.iot.sensors.dht22  # noqa
+import src.v2.infrastructure.iot.sensors.capacitive_soil  # noqa
+import src.v2.infrastructure.iot.sensors.ina219  # noqa
+import src.v2.infrastructure.iot.sensors.mh_z19b  # noqa
+
+
+def build_mqtt_client(tenant) -> MqttClient:
+    broker = next(iter(tenant.mqtt_brokers.values()))
+
+    client = MqttClient()
+    client.create(broker, client_id="edge-agent")
+    client.connect()
+
+    return client
+
+
+class BootstrapClient:
+    @staticmethod
+    async def bootstrap(tenant_id: str):
+        service = TenantConfigService(
+            fs=VirtualFS(Path("../")),
+            tenant_assembler=TenantAssembler(DomainRegistry()),
+            yaml_loader=YamlLoader(),
+            schema_validator=SchemaValidator(),
+        )
+        logger = logging.getLogger(__name__)
+        logger.debug("TenantConfigService instantiated",extra=service.tenant_assembler.registry.iter_tenants())
+
+        service.load()
+        tenants = list(service.tenant_assembler.registry.iter_tenants())
+
+        if len(tenants) != 1:
+            raise RuntimeError(f"Expected exactly 1 tenant, got {len(tenants)}")
+        tenant = tenants[0]  # TODO
+        sas = SensorAttachmentService()
+        sas.attach(tenant)
+
+        mqtt_client = build_mqtt_client(tenant)
+
+        topic_service = TopicGenerationService(tenant)
+        publisher = MqttPublisher(mqtt_client, topic_service)
+
+        scheduler = SensorScheduler(publisher)
+        device_runner = DeviceRunner(scheduler)
+        farm_runner = FarmRunner(device_runner)
+        runtime = TenantRuntime(farm_runner)
+
+        await runtime.run(tenant)

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from src.v2.domain.topics.topic_segment import TopicSegment
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class MessageClass:
     id: str
     topic: str
@@ -11,4 +11,5 @@ class MessageClass:
         return TopicSegment(kind="mc", token=self.id)
 
 
-
+    def __repr__(self) -> str:
+        return f"topic={self.topic}"

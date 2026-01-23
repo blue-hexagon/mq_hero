@@ -10,4 +10,3 @@ def load_sensor_model(model_name: str, config: dict):
     model_class = getattr(module, class_name)
 
     return model_class(config)
-

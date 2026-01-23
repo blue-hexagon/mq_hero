@@ -1,4 +1,5 @@
 from src.v2.domain.entities.device import DeviceClass
+from src.v2.domain.entities.location import Location
 from src.v2.domain.entities.message_class import MessageClass
 
 from typing import Dict, Iterable
@@ -6,6 +7,7 @@ from typing import Dict, Iterable
 from src.v2.domain.entities.device import Device
 from src.v2.domain.entities.farm import Farm
 from src.v2.domain.entities.tenant import Tenant
+from src.v2.domain.errors import LocationDontExists
 
 
 class DomainRegistry:
@@ -58,6 +60,18 @@ class DomainRegistry:
         tenant = self.get_tenant(tenant_id)
         farm = tenant.get_farm(farm_id)
         return farm.get_device(device_id)
+
+    def get_location(
+            self,
+            tenant_id: str,
+            name: str,
+    ) -> Location:
+        tenant = self.get_tenant(tenant_id)
+        location = tenant.locations.get(name)
+        if location is None:
+            raise LocationDontExists(f"Attempted to fetch location '{name}' but it was not found.")
+        else:
+            return location
 
     def get_device_class(
             self,

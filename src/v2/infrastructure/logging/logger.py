@@ -3,70 +3,104 @@ import sys
 from threading import Lock
 from typing import Optional
 
+# =====================================================
+# Global state (idempotent setup)
+# =====================================================
+
 _lock = Lock()
 _configured = False
 
+# =====================================================
+# Context configuration
+# =====================================================
 
-# -------------------------
-# Context injection
-# -------------------------
+_LOG_CONTEXT_KEYS = (
+    "tenant",
+    "farm",
+    "device",
+    "device_class",
+    "message_class",
+    "direction",
+    "client_id",
+)
 
-class ContextFilter(logging.Filter):
-    """
-    Injects contextual fields into every log record.
-    Missing fields are filled with 'NA'.
-    """
-
-    DEFAULTS = {
-        "tenant": "NA",
-        "farm": "NA",
-        "device": "NA",
-        "device_class": "NA",
-        "message_class": "NA",
-        "direction": "NA",
-        "client_id": "NA",
-    }
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        for key, default in self.DEFAULTS.items():
-            if not hasattr(record, key):
-                setattr(record, key, default)
-        return True
+_LOG_CONTEXT_DEFAULT = "NA"
 
 
-# -------------------------
-# Formatter with truncated logger name
-# -------------------------
+# =====================================================
+# Formatter with truncated logger name + optional context
+# =====================================================
 
 class TruncatingFormatter(logging.Formatter):
     """
-    Formatter that exposes `shortname`:
-    last N segments of the logger name.
+    Formatter that:
+    - exposes `shortname` (last N parts of logger name)
+    - safely injects context defaults
+    - conditionally renders context (no empty pipes)
     """
 
-    def __init__(self, *args, max_parts: int = 2, **kwargs):
+    def __init__(
+            self,
+            *args,
+            max_parts: int = 2,
+            show_empty_context: bool = False,
+            **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.max_parts = max_parts
+        self.show_empty_context = show_empty_context
 
     def format(self, record: logging.LogRecord) -> str:
+        # -------------------------------------------------
+        # Ensure context keys always exist (formatter-safe)
+        # -------------------------------------------------
+        for key in _LOG_CONTEXT_KEYS:
+            if not hasattr(record, key):
+                setattr(record, key, _LOG_CONTEXT_DEFAULT)
+
+        # -------------------------------------------------
+        # Short logger name
+        # -------------------------------------------------
         parts = record.name.split(".")
         record.shortname = ".".join(parts[-self.max_parts:])
+
+        # -------------------------------------------------
+        # Build conditional context block
+        # -------------------------------------------------
+        context_items = [
+            f"{key}={getattr(record, key)}"
+            for key in _LOG_CONTEXT_KEYS
+            if getattr(record, key) != _LOG_CONTEXT_DEFAULT
+        ]
+
+        if context_items:
+            record.context_block = " | " + " ".join(context_items)
+        elif self.show_empty_context:
+            record.context_block = " | context=NA"
+        else:
+            record.context_block = ""
+
         return super().format(record)
 
 
-# -------------------------
-# Singleton setup
-# -------------------------
+# =====================================================
+# Logging setup (composition root)
+# =====================================================
 
 def setup_logging(
         *,
         level: int = logging.INFO,
-        app_name: str = "iot-hero",  # noqa
         enable_debug_modules: Optional[list[str]] = None,
+        show_empty_context: bool = False,
 ) -> None:
     """
     Global, idempotent logging configuration.
-    Safe to call multiple times.
+
+    Guarantees:
+    - Safe to call multiple times
+    - Per-module debug actually works
+    - Context is optional and noise-free
+    - Formatter never crashes on missing fields
     """
     global _configured
 
@@ -81,28 +115,51 @@ def setup_logging(
         root.setLevel(level)
 
         handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(level)
+
+        # -------------------------------------------------
+        # Handler level MUST allow DEBUG if any module needs it
+        # -------------------------------------------------
+        effective_handler_level = level
+        if enable_debug_modules:
+            effective_handler_level = logging.DEBUG
+
+        handler.setLevel(effective_handler_level)
 
         formatter = TruncatingFormatter(
             fmt=(
-                "%(asctime)s | %(levelname)-4s | %(shortname)s | "
-                "tenant=%(tenant)s farm=%(farm)s device=%(device)s "
-                "d_class=%(device_class)s m_class=%(message_class)s "
-                "dir=%(direction)s | %(message)s"
+                "%(asctime)s | %(levelname)-4s | %(shortname)s"
+                "%(context_block)s | %(message)s"
             ),
             datefmt="%H:%M:%S",
             max_parts=2,
+            show_empty_context=show_empty_context,
         )
 
         handler.setFormatter(formatter)
-        handler.addFilter(ContextFilter())
 
         root.handlers.clear()
         root.addHandler(handler)
 
-        # Optional per-module debug enabling
+        # -------------------------------------------------
+        # Enable DEBUG on specific module namespaces
+        # -------------------------------------------------
         if enable_debug_modules:
             for module in enable_debug_modules:
                 logging.getLogger(module).setLevel(logging.DEBUG)
 
         _configured = True
+
+# =====================================================
+# Example usage
+# =====================================================
+# setup_logging(
+#     level=logging.INFO,
+#     enable_debug_modules=[
+#         "src.v2.application.runtime.context",
+#         "src.v2.infrastructure.mqtt",
+#     ],
+# )
+#
+# log = logging.getLogger(__name__)
+# log.debug("ROOT_ENV_KEY=%s", "ROLE")
+# log.info("System initialized", extra={"tenant": "t1", "farm": "f1"})
