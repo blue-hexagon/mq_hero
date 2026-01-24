@@ -1,3 +1,5 @@
+import logging
+
 from src.v2.infrastructure.filesystem.policies import FilesystemPolicy
 from src.v2.infrastructure.filesystem.asset_kind import AssetKind
 from src.v2.infrastructure.filesystem.vfs import VirtualFS
@@ -33,10 +35,13 @@ class TenantConfigService:
         schema_path = FilesystemPolicy.resolve_allowed_path(
             AssetKind.SCHEMA, "tenant.schema.yaml"
         )
+        logger = logging.getLogger(__name__)
+        logger.debug(f"(config_path,schema_path)=({config_path},{schema_path})")
 
         # Read files
         config_text = self.fs.read_text(config_path)
         schema_text = self.fs.read_text(schema_path)
+        logger.debug(f"Read config_text and schema_text")
 
         # Parse
         source_tree = self.yaml_loader.load_with_locations(config_text)

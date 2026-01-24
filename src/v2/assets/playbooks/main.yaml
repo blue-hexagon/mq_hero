@@ -3,8 +3,8 @@ schema_version: "1.0"
 tenants:
   rit_agritech:
     meta:
-      full_name: "AgriTech Solutions"
       short_name: "agtech"
+      full_name: "AgriTech Solutions"
       api_version: 1
       description: "IoT-implementation for AgriTech Solution."
       mqtt:
@@ -41,7 +41,7 @@ tenants:
 
             - id: "hum-01"
               class: "sensor"
-              model: "dht22.py"
+              model: "sen0193.py"
               location: "greenhouse"
               publishes:
                 - metric: "humidity"

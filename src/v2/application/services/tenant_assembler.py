@@ -19,6 +19,7 @@ class TenantAssembler:
     def __init__(self, registry: DomainRegistry):
         self.registry = registry
 
+
     def assemble(self, tenants_cfg: dict) -> None:
         for tenant_key, cfg in tenants_cfg.items():
             tenant = Tenant(

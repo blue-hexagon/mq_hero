@@ -1,13 +1,12 @@
 import logging
 from pathlib import Path
 
-from src.v2.application.services.sensor_attachment_service import SensorAttachmentService
+from src.v2.application.services.sensor_attachment_service import ModuleAttachmentService
 from src.v2.application.services.tenant_assembler import TenantAssembler
 from src.v2.application.services.tenant_config_service import TenantConfigService
 from src.v2.application.services.topic_generation_service import TopicGenerationService
 
 from src.v2.domain.entities.registry import DomainRegistry
-from src.v2.domain.entities.tenant import Tenant
 from src.v2.edge_agent.device_runner import DeviceRunner
 from src.v2.edge_agent.farm_runner import FarmRunner
 from src.v2.edge_agent.mqtt_publisher import MqttPublisher
@@ -28,7 +27,7 @@ def build_mqtt_client(tenant) -> MqttClient:
     broker = next(iter(tenant.mqtt_brokers.values()))
 
     client = MqttClient()
-    client.create(broker, client_id="edge-agent")
+    client.create(broker, client_id="kafkask-hovedpine")
     client.connect()
 
     return client
@@ -38,13 +37,13 @@ class BootstrapClient:
     @staticmethod
     async def bootstrap(tenant_id: str):
         service = TenantConfigService(
-            fs=VirtualFS(Path("../")),
+            fs=VirtualFS(Path(".")),
             tenant_assembler=TenantAssembler(DomainRegistry()),
             yaml_loader=YamlLoader(),
             schema_validator=SchemaValidator(),
         )
         logger = logging.getLogger(__name__)
-        logger.debug("TenantConfigService instantiated",extra=service.tenant_assembler.registry.iter_tenants())
+        logger.debug("TenantConfigService instantiated")
 
         service.load()
         tenants = list(service.tenant_assembler.registry.iter_tenants())
@@ -52,8 +51,8 @@ class BootstrapClient:
         if len(tenants) != 1:
             raise RuntimeError(f"Expected exactly 1 tenant, got {len(tenants)}")
         tenant = tenants[0]  # TODO
-        sas = SensorAttachmentService()
-        sas.attach(tenant)
+        mas = ModuleAttachmentService()
+        mas.attach_modules(tenant)
 
         mqtt_client = build_mqtt_client(tenant)
 

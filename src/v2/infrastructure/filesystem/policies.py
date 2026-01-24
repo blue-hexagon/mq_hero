@@ -4,8 +4,8 @@ from .asset_kind import AssetKind
 
 class FilesystemPolicy:
     ALLOWED_ROOTS: dict[AssetKind, PurePosixPath] = {
-        AssetKind.PLAYBOOK: PurePosixPath("assets/playbooks"),
-        AssetKind.SCHEMA: PurePosixPath("assets/schemas"),
+        AssetKind.PLAYBOOK: PurePosixPath("src/v2/assets/playbooks"),
+        AssetKind.SCHEMA: PurePosixPath("src/v2/assets/schemas"),
     }
 
     @classmethod

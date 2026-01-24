@@ -15,28 +15,28 @@ from dotenv import load_dotenv
 from src.v2.application.services.topic_generation_service import TopicGenerationService
 import asyncio
 
-
 if __name__ == '__main__':
     setup_logging(
-        level=logging.INFO,
+        level=logging.DEBUG,
         enable_debug_modules=[
             "src.v2.domain.policies",
             "src.v2.infrastructure.mqtt",
             "src.v2.domain.entities.tenant",
             "src.v2.application.runtime.context",
         ],
-        show_empty_context=False,
+        show_empty_context=True,
     )
-    load_dotenv("src/.env")
+    load_dotenv(".env")
     rt = RuntimeContext()
 
     if rt.is_client():
         bsc = BootstrapClient()
         asyncio.run(bsc.bootstrap(""))
+
     elif rt.is_server():
         tcs = TenantConfigService(
             fs=VirtualFS(
-                root=Path("src/v2/")
+                root=Path(".")
             ),
             tenant_assembler=TenantAssembler(
                 registry=DomainRegistry()
@@ -44,6 +44,7 @@ if __name__ == '__main__':
             yaml_loader=YamlLoader(),
             schema_validator=SchemaValidator(),
         )
+        tcs.load()
         registry = tcs.tenant_assembler.registry
 
         for tenant in registry.iter_tenants():
@@ -51,3 +52,4 @@ if __name__ == '__main__':
             topics = TopicGenerationService(tenant=tenant)
             pprint(list(topics.generate_topics()))
             pprint(list(registry.iter_devices(tenant_id=tenant.id)))
+        logging.getLogger(__name__).debug("Terminated successfully.")

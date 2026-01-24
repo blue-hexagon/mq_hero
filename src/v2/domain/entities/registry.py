@@ -25,6 +25,7 @@ class DomainRegistry:
         # Aggregate roots ONLY
         self._tenants: Dict[str, Tenant] = {}
 
+
     # -------------------------
     # Aggregate root management
     # -------------------------

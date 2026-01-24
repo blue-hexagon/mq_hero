@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path, PurePath
 from typing import Union
@@ -15,6 +16,7 @@ class VirtualFS:
 
         if not path.is_relative_to(self.root):
             raise PermissionError(f"Path escape attempt: {relative}")
+        logger = logging.getLogger(__name__)
 
         return path
 

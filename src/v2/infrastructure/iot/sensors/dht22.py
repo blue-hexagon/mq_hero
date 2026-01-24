@@ -1,5 +1,3 @@
-# src/v2/infrastructure/iot/sensors/dht22.py
-
 import random
 import asyncio
 from typing import Dict

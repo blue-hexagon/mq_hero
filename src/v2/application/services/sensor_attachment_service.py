@@ -2,22 +2,32 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Protocol
 
 from src.v2.application.services.sensor_factory import SensorFactory
+from src.v2.domain.entities.device_class import DeviceClass
 from src.v2.domain.entities.tenant import Tenant
 from src.v2.application.services.topic_generation_service import TopicGenerationService
 from src.v2.infrastructure.iot.attachable import Attachable
 
-T = TypeVar("T", bound=Attachable)
+T_Attachable = TypeVar("T_Attachable", bound=Attachable)
 
 
-class AttachmentService(ABC, Generic[T]):
+class AttachmentService(Generic[T_Attachable], ABC):
+    """ Attaches an 'attachable' to a DeviceClass """
+
     @abstractmethod
-    def attach(self, target: Generic[T]) -> None:
+    async def attach(self, target: T_Attachable) -> None:
+        """Attach runtime behavior to the target"""
+        ...
+
+    @abstractmethod
+    async def detach(self, target: T_Attachable) -> None:
+        """Optional: clean up behavior"""
         pass
 
 
-class DeviceAttachmentService(AttachmentService[Tenant]):
+# class DeviceAttachmentService(AttachmentService[Tenant]):
+class ModuleAttachmentService():
 
-    def attach(self, tenant: Generic[Tenant]):
+    def attach_modules(self, tenant: Tenant):
         topic_service = TopicGenerationService(tenant)
         all_topics = topic_service.generate_topics()
 
