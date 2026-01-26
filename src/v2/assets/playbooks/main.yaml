@@ -24,7 +24,7 @@ tenants:
             - id: "room-temp-01"
               class: "sensor"
               driver: "dht22"
-              type: "room_temp"
+              type: "room_temperature"
               location: "ringsted.hq"
               policies: [ "sensor-pubsub" ]
 
@@ -36,7 +36,7 @@ tenants:
 
       device_classes:
         sensor:
-          - id: "room_temp"
+          - id: "room-temp01"
             driver: "dht22"
             unit: "°C"
             ranges:
@@ -62,7 +62,6 @@ tenants:
         message_classes: [ "metric","alert" ]
         direction: BOTH
 
-
   rit_customer_agritech:
     meta:
       short_name: "agtech"
@@ -73,9 +72,9 @@ tenants:
         - id: "prod"
           username: "agritech"
           password: "5ecur3Pa55w0rd"
-          ipv4: "172.16.20.224"
+          ipv4: "127.0.0.1"
           port: 1883
-          keepalive: 600
+          keepalive: 120
 
     topology:
       farms:
@@ -86,7 +85,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "rorendegaard.cropfield"
               interval: 60
               policies: [ "sensor-pub" ]
@@ -94,7 +93,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "rorendegaard.cropfield"
               interval: 60
               policies: [ "sensor-pub" ]
@@ -106,7 +105,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "nordmarkgaard.cropfield"
               interval: 120
               policies: [ "sensor-pub" ]
@@ -114,7 +113,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "nordmarkgaard.cropfield"
               interval: 180
               policies: [ "sensor-pub" ]
@@ -126,7 +125,7 @@ tenants:
             - id: "room-hum-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_humidity"
               location: "troensegaard.barn"
               interval: 10
               policies: [ "sensor-pub" ]
@@ -134,7 +133,7 @@ tenants:
             - id: "room-temp-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_temperature"
               location: "troensegaard.barn"
               interval: 20
               policies: [ "sensor-pub" ]
@@ -142,7 +141,7 @@ tenants:
             - id: "electricity-01"
               class: "sensor"
               driver: "sdm630m"
-              type:
+              type: "power"
               location: "troensegaard.barn"
               interval: 15
               policies: [ "sensor-pub" ]
@@ -154,7 +153,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "rosengaarden.greenhouse"
               interval: 120
               policies: [ "sensor-pub" ]
@@ -162,7 +161,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "rosengaarden.greenhouse"
               interval: 180
               policies: [ "sensor-pub" ]
@@ -170,7 +169,7 @@ tenants:
             - id: "room-hum-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_humidity"
               location: "rosengaarden.greenhouse"
               interval: 10
               policies: [ "sensor-pub" ]
@@ -178,7 +177,7 @@ tenants:
             - id: "room-temp-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_temperature"
               location: "rosengaarden.greenhouse"
               interval: 20
               policies: [ "sensor-pub" ]
@@ -186,7 +185,7 @@ tenants:
             - id: "room-co2-01"
               class: "sensor"
               driver: "mh_z19b"
-              type:
+              type: "co2_air"
               location: "rosengaarden.greenhouse"
               interval: 5
               policies: [ "sensor-pub" ]
@@ -194,7 +193,7 @@ tenants:
             - id: "electricity-01"
               class: "sensor"
               driver: "sdm630m"
-              type:
+              type: "power"
               location: "rosengaarden.barn"
               interval: 15
               policies: [ "sensor-pub" ]
@@ -206,7 +205,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "hoejbakkegaard.cropfield"
               interval: 180
               policies: [ "sensor-pub" ]
@@ -214,7 +213,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "hoejbakkegaard.cropfield"
               interval: 180
               policies: [ "sensor-pub" ]
@@ -226,7 +225,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "tingstedgaard.greenhouse"
               interval: 120
               policies: [ "sensor-pub" ]
@@ -234,7 +233,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "tingstedgaard.greenhouse"
               interval: 180
               policies: [ "sensor-pub" ]
@@ -242,7 +241,7 @@ tenants:
             - id: "room-hum-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_humidity"
               location: "tingstedgaard.greenhouse"
               interval: 10
               policies: [ "sensor-pub" ]
@@ -250,7 +249,7 @@ tenants:
             - id: "room-temp-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_temperature"
               location: "tingstedgaard.greenhouse"
               interval: 20
               policies: [ "sensor-pub" ]
@@ -258,7 +257,7 @@ tenants:
             - id: "room-co2-01"
               class: "sensor"
               driver: "mh_z19b"
-              type:
+              type: "co2_air"
               location: "tingstedgaard.greenhouse"
               interval: 5
               policies: [ "sensor-pub" ]
@@ -270,7 +269,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "halberggaard.cropfield"
               interval: 60
               policies: [ "sensor-pub" ]
@@ -278,7 +277,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "halberggaard.cropfield"
               interval: 60
               policies: [ "sensor-pub" ]
@@ -290,7 +289,7 @@ tenants:
             - id: "earth-hum-01"
               class: "sensor"
               driver: "sen0193"
-              type:
+              type: "soil_humidity"
               location: "rorstigaard.cropfield"
               interval: 120
               policies: [ "sensor-pub" ]
@@ -298,7 +297,7 @@ tenants:
             - id: "earth-temp-01"
               class: "sensor"
               driver: "ds18b20"
-              type:
+              type: "soil_temperature"
               location: "rorstigaard.cropfield"
               interval: 120
               policies: [ "sensor-pub" ]
@@ -310,7 +309,7 @@ tenants:
             - id: "room-hum-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_humidity"
               location: "tagensgaard.barn"
               interval: 10
               policies: [ "sensor-pub" ]
@@ -318,7 +317,7 @@ tenants:
             - id: "room-temp-01"
               class: "sensor"
               driver: "dht22"
-              type:
+              type: "room_temperature"
               location: "tagensgaard.barn"
               interval: 20
               policies: [ "sensor-pub" ]
@@ -326,7 +325,7 @@ tenants:
             - id: "electricity-01"
               class: "sensor"
               driver: "sdm630m"
-              type:
+              type: "power"
               location: "tagensgaard.barn"
               interval: 15
               policies: [ "sensor-pub" ]

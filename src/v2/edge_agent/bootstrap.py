@@ -24,7 +24,7 @@ def build_mqtt_client(tenant) -> MqttClient:
     broker = next(iter(tenant.mqtt_brokers.values()))
 
     client = MqttClient()
-    client.create(broker, client_id="kafkask-hovedpine")
+    client.create(broker, client_id="test")
     client.connect()
 
     return client
@@ -52,8 +52,10 @@ class BootstrapClient:
         mas.attach_modules(tenant)
 
         mqtt_client = build_mqtt_client(tenant)
+        print(mqtt_client)
 
         topic_service = TopicGenerationService(tenant)
+        logger.debug(topic_service)
         publisher = MqttPublisher(mqtt_client, topic_service)
 
         scheduler = SensorScheduler(publisher)

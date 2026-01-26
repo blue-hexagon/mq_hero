@@ -17,27 +17,31 @@ from src.v2.application.services.topic_generation_service import TopicGeneration
 import asyncio
 
 if __name__ == '__main__':
-    setup_logging(
-        level=logging.DEBUG,
-        enable_debug_modules=[
-            "src.v2.domain.policies",
-            "src.v2.infrastructure.mqtt",
-            "src.v2.domain.entities.tenant",
-            "src.v2.application.runtime.context",
-        ],
-        show_empty_context=True,
-    )
     load_dotenv(".env")
     rt = RuntimeContext()
 
     if rt.is_client():
-        bsc = BootstrapClient()
-
-        asyncio.run(bsc.bootstrap(
-            tenant_id=os.environ.get("TENANT_ID"))
+        setup_logging(
+            level=logging.DEBUG,
+            enable_debug_modules=[
+                "src.v2.domain.policies",
+                "src.v2.infrastructure.mqtt",
+                "src.v2.domain.entities.tenant",
+                "src.v2.application.runtime.context",
+            ],
+            show_empty_context=True,
         )
-
+        bsc = BootstrapClient()
+        try:
+            asyncio.run(bsc.bootstrap(tenant_id=os.environ.get("TENANT_ID")))
+        except KeyboardInterrupt:
+            logging.getLogger(__name__).info("Client: Terminated successfully.")
     elif rt.is_server():
+        setup_logging(
+            level=logging.INFO,
+            enable_debug_modules=[],
+            show_empty_context=False,
+        )
         tcs = TenantConfigService(
             fs=VirtualFS(
                 root=Path(".")
@@ -56,4 +60,4 @@ if __name__ == '__main__':
             topics = TopicGenerationService(tenant=tenant)
             pprint(list(topics.generate_topics()))
             pprint(list(registry.iter_devices(tenant_id=tenant.id)))
-        logging.getLogger(__name__).debug("Terminated successfully.")
+        logging.getLogger(__name__).info("Server: Terminated successfully.")

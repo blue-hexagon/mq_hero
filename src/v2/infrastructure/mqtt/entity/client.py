@@ -1,10 +1,13 @@
 import json
+import logging
+
 import paho.mqtt.client as mqtt
 
 from src.v2.infrastructure.mqtt.entity.broker import MqttBroker
 
 
 class MqttClient:
+    logger = logging.getLogger(__name__)
 
     def __init__(self):
         self.client: mqtt.Client | None = None
@@ -42,13 +45,13 @@ class MqttClient:
 
     # ---- callbacks ----
 
-    @staticmethod
-    def on_connect(client, userdata, flags, rc):
-        print(f"[MQTT] Connected rc={rc}")
+    @classmethod
+    def on_connect(cls,client, userdata, flags, rc):
+        cls.logger.info(f"[MQTT] Connected rc={rc}")
 
-    @staticmethod
-    def on_disconnect(client, userdata, rc):
-        print("[MQTT] Disconnected – retrying")
+    @classmethod
+    def on_disconnect(cls,client, userdata, rc):
+        cls.logger.info("[MQTT] Disconnected – retrying")
 
     @staticmethod
     def on_message(client, userdata, msg):

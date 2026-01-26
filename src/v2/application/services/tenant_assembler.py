@@ -1,4 +1,6 @@
 # application/services/tenant_assembler.py
+import logging
+
 from src.v2.domain.entities.location import Location
 from src.v2.domain.entities.tenant import Tenant
 from src.v2.domain.entities.farm import Farm
@@ -19,8 +21,8 @@ class TenantAssembler:
     def __init__(self, registry: DomainRegistry):
         self.registry = registry
 
-
     def assemble(self, tenants_cfg: dict) -> None:
+        logger = logging.getLogger(__name__)
         for tenant_key, cfg in tenants_cfg.items():
             tenant = Tenant(
                 id=tenant_key,
@@ -29,6 +31,7 @@ class TenantAssembler:
                 api_version=cfg["meta"]["api_version"],
                 description=cfg["meta"].get("description", ""),
             )
+            logger.debug(tenant)
             for mqtt_cfg in cfg["meta"]["mqtt"]:
                 mqtt_broker = MqttBroker(
                     tenant_id=tenant_key,
@@ -39,22 +42,26 @@ class TenantAssembler:
                     mqtt_port=mqtt_cfg.get("port", 1883),
                     keepalive=mqtt_cfg["keepalive"]
                 )
+                logger.debug(mqtt_broker)
                 tenant.register_mqtt_broker(mqtt_broker)
 
             # Device classes
             for dc_id in cfg["definitions"]["device_classes"]:
-                tenant.register_device_class(DeviceClass(id=dc_id))
+                dclass = DeviceClass(id=dc_id)
+                logger.debug(dclass)
+                tenant.register_device_class(dclass)
 
             # Message classes
             for mc in cfg["definitions"]["message_classes"]:
-                tenant.register_message_class(
-                    MessageClass(id=mc["id"], topic=mc["topic"])
-                )
+                msg_class = MessageClass(id=mc["id"], topic=mc["topic"])
+                logger.debug(msg_class)
+                tenant.register_message_class(msg_class)
+
             # Tenant Locations
             for loc in cfg["definitions"]["locations"]:
-                tenant.register_location(
-                    Location(name=loc['name'], latitude=loc['latitude'], longitude=loc['longitude'])
-                )
+                loca = Location(name=loc['name'], latitude=loc['latitude'], longitude=loc['longitude'])
+                logger.debug(loca)
+                tenant.register_location(loca)
 
             self.registry.register_tenant(tenant)
 
@@ -65,6 +72,7 @@ class TenantAssembler:
                     name=farm_cfg["name"],
                     city=farm_cfg["city"],
                 )
+                logger.debug(farm)
                 tenant.register_farm(farm)
 
                 for dev_cfg in farm_cfg.get("devices", []):
@@ -82,7 +90,7 @@ class TenantAssembler:
                     device = Device(
                         id=dev_cfg["id"],
                         device_class=device_class,
-                        model=dev_cfg.get("model"),
+                        driver=dev_cfg.get("driver"),
                         location=device_location,
                         interval=dev_cfg.get("interval"),
                         _farm=farm,

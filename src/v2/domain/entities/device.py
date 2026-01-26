@@ -17,7 +17,7 @@ class Device:
     device_class: DeviceClass
     interval: int
     location: Location
-    model: str  # This defines the sensor model it'll use later
+    driver: str  # This defines the sensor model it'll use later
     _farm: Farm
     messages: List[MqttMessageContract] = field(default_factory=list)
 
@@ -31,5 +31,5 @@ class Device:
     def farm(self) -> Farm:
         return self._farm
     def __str__(self) -> str:
-        return (f"Device(id={self.id}, class={self.device_class.id}, model={self.model}, location={self.location}, "
+        return (f"Device(id={self.id}, class={self.device_class.id}, model={self.driver}, location={self.location}, "
                 f"topic_segment={self.get_topic_segment()})")

@@ -70,10 +70,10 @@ tenants:
       api_version: 1
       description: "IoT-implementation for AgriTech Solution."
       mqtt:
-        - id: "prod"
-          username: "agritech"
-          password: "5ecur3Pa55w0rd"
-          ipv4: "172.16.20.224"
+        - id: "test"
+          username: "testuser"
+          password: "testpassword"
+          ipv4: "127.0.0.1"
           port: 1883
           keepalive: 600
 
