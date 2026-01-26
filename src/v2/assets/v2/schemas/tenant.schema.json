@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/tenant.schema.json",
+  "title": "IoT Multi-Tenant Topology Schema",
+  "type": "object",
+  "required": ["schema_version", "tenants"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "tenants": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/tenant" }
+    }
+  },
+
+  "$defs": {
+    "tenant": {
+      "type": "object",
+      "required": ["meta", "topology", "definitions", "device_classes", "message_classes", "policies"],
+      "properties": {
+        "meta": { "$ref": "#/$defs/meta" },
+        "topology": { "$ref": "#/$defs/topology" },
+        "definitions": { "$ref": "#/$defs/definitions" },
+        "device_classes": { "$ref": "#/$defs/deviceClasses" },
+        "message_classes": { "$ref": "#/$defs/messageClasses" },
+        "policies": { "$ref": "#/$defs/policies" }
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["short_name", "full_name", "api_version", "mqtt"],
+      "properties": {
+        "short_name": { "type": "string" },
+        "full_name": { "type": "string" },
+        "api_version": { "type": "integer" },
+        "description": { "type": "string" },
+        "mqtt": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/mqttBroker" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "mqttBroker": {
+      "type": "object",
+      "required": ["id", "username", "password", "ipv4", "port"],
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "ipv4": { "type": "string", "format": "ipv4" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "keepalive": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "topology": {
+      "type": "object",
+      "required": ["farms"],
+      "properties": {
+        "farms": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/farm" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "farm": {
+      "type": "object",
+      "required": ["id", "name", "city", "devices"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "city": { "type": "string" },
+        "devices": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/device" }
+        }
+      }
+    },
+
+    "device": {
+      "type": "object",
+      "required": ["id", "class", "driver", "location", "policies"],
+      "properties": {
+        "id": { "type": "string" },
+        "class": { "enum": ["sensor", "machine", "actuator"] },
+        "driver": { "type": "string" },
+        "type": { "type": ["string", "null"] },
+        "location": { "type": "string" },
+        "interval": { "type": ["integer", "null"], "minimum": 1 },
+        "policies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+
+    "definitions": {
+      "type": "object",
+      "required": ["locations"],
+      "properties": {
+        "locations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/location" }
+        }
+      }
+    },
+
+    "location": {
+      "type": "object",
+      "required": ["name", "latitude", "longitude"],
+      "properties": {
+        "name": { "type": "string" },
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+      }
+    },
+
+    "deviceClasses": {
+      "type": "object",
+      "required": ["sensor"],
+      "properties": {
+        "sensor": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sensorClass" }
+        },
+        "machine": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/machineClass" }
+        },
+        "actuator": {
+          "type": "object"
+        }
+      }
+    },
+
+    "sensorClass": {
+      "type": "object",
+      "required": ["id", "driver", "unit", "ranges", "default_interval"],
+      "properties": {
+        "id": { "type": "string" },
+        "driver": { "type": "string" },
+        "unit": { "type": "string" },
+        "ranges": {
+          "type": "object",
+          "properties": {
+            "normal": { "type": "string" },
+            "low": { "type": ["string", "null"] },
+            "high": { "type": ["string", "null"] }
+          }
+        },
+        "default_interval": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "machineClass": {
+      "type": "object",
+      "required": ["id", "command_set"],
+      "properties": {
+        "id": { "type": "string" },
+        "command_set": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["cmd"],
+            "properties": {
+              "cmd": { "type": "string" },
+              "params": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "messageClasses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "topic", "qos", "retain"],
+        "properties": {
+          "id": { "type": "string" },
+          "topic": { "type": "string" },
+          "qos": { "type": "integer", "enum": [0, 1, 2] },
+          "retain": { "type": "boolean" }
+        }
+      }
+    },
+
+    "policies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "farms", "device_classes", "message_classes", "direction"],
+        "properties": {
+          "name": { "type": "string" },
+          "farms": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "device_classes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "message_classes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "direction": {
+            "enum": ["PUB", "SUB", "BOTH"]
+          }
+        }
+      }
+    }
+  }
+}

@@ -17,10 +17,7 @@ from src.v2.infrastructure.filesystem.vfs import VirtualFS
 from src.v2.infrastructure.loaders.schema_validator import SchemaValidator
 from src.v2.infrastructure.loaders.yaml_loader import YamlLoader
 from src.v2.infrastructure.mqtt.entity.client import MqttClient
-import src.v2.infrastructure.iot.sensors.dht22  # noqa
-import src.v2.infrastructure.iot.sensors.capacitive_soil  # noqa
-import src.v2.infrastructure.iot.sensors.ina219  # noqa
-import src.v2.infrastructure.iot.sensors.mh_z19b  # noqa
+from src.v2.edge_agent.imports import *  # noqa
 
 
 def build_mqtt_client(tenant) -> MqttClient:

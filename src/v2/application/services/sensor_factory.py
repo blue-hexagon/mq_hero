@@ -1,5 +1,4 @@
-from src.v2.application.services.topic_generation_service import TopicGenerationService
-from src.v2.domain.entities.tenant import Tenant
+from src.v2.edge_agent.errors import MissingModuleError
 
 
 class SensorFactory:
@@ -10,12 +9,17 @@ class SensorFactory:
         def decorator(sensor_cls):
             cls.REGISTRY[model_name] = sensor_cls
             return sensor_cls
+
         return decorator
 
     @classmethod
     def create(cls, *, device, topics):
         if device.model not in cls.REGISTRY:
-            raise ValueError(f"No sensor registered for model '{device.model}'")
+            # import os
+            #
+            # files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+            # f"Available sensors: {}"
+            raise MissingModuleError(f"No sensor registered for model '{device.model}'")
 
         sensor_cls = cls.REGISTRY[device.model]
 
@@ -26,4 +30,3 @@ class SensorFactory:
             topics=topics,
             interval=device.interval,
         )
-

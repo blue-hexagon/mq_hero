@@ -16,8 +16,10 @@ class DeviceAlreadyExists(DomainError):
 class TenantAlreadyExists(DomainError):
     code = "tenant_already_exists"
 
+
 class LocationAlreadyExists(DomainError):
     code = "location_already_exists"
+
 
 class LocationDontExists(DomainError):
     code = "location_dont_exists"

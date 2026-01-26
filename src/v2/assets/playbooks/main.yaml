@@ -51,7 +51,7 @@ tenants:
 
             - id: "soil-01"
               class: "sensor"
-              model: "capacitive_soil.py"
+              model: "sen0193.py"
               location: "northern-field"
               publishes:
                 - metric: "soil_moisture"
