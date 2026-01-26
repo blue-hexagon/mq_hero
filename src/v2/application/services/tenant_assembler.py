@@ -96,12 +96,18 @@ class TenantAssembler:
     @staticmethod
     def _expand_policies(tenant: Tenant, policy_cfg: dict) -> None:
         policy_name = policy_cfg["name"]
-
-        farms = (
-            [tenant.get_farm(fid) for fid in policy_cfg["farms"]]
-            if policy_cfg.get("farms")
-            else [None]
-        )
+        if policy_cfg["farms"] == ['*']:
+            farms = (
+                [tenant.get_farm(fid) for fid in tenant.farms]
+                if policy_cfg.get("farms")
+                else [None]
+            )
+        else:
+            farms = (
+                [tenant.get_farm(fid) for fid in policy_cfg["farms"]]
+                if policy_cfg.get("farms")
+                else [None]
+            )
 
         device_classes = [
             tenant.get_device_class(dc_id)

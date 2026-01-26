@@ -43,11 +43,11 @@ class BootstrapClient:
         logger.debug("TenantConfigService instantiated")
 
         service.load()
-        tenants = list(service.tenant_assembler.registry.iter_tenants())
 
-        if len(tenants) != 1:
-            raise RuntimeError(f"Expected exactly 1 tenant, got {len(tenants)}")
-        tenant = tenants[0]  # TODO
+        tenant = BootstrapClient.resolve_tenant(
+            registry=service.tenant_assembler.registry,
+            tenant_id=tenant_id
+        )
         mas = ModuleAttachmentService()
         mas.attach_modules(tenant)
 
@@ -62,3 +62,23 @@ class BootstrapClient:
         runtime = TenantRuntime(farm_runner)
 
         await runtime.run(tenant)
+
+    @staticmethod
+    def resolve_tenant(registry, tenant_id: str | None = None):
+        tenants = list(registry.iter_tenants())
+
+        if not tenants:
+            raise RuntimeError("No tenants registered")
+
+        if tenant_id is None:
+            if len(tenants) != 1:
+                raise RuntimeError(
+                    f"Multiple tenants present ({len(tenants)}), but no tenant_id provided"
+                )
+            return tenants[0]
+
+        for tenant in tenants:
+            if tenant.id == tenant_id:
+                return tenant
+
+        raise KeyError(f"Tenant '{tenant_id}' not found")

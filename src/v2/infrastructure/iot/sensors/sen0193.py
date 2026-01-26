@@ -7,7 +7,7 @@ from src.v2.infrastructure.iot.sensors.base_sensor import SensorModel
 
 
 @SensorFactory.register("sen0193.py")
-class CapacitiveSoil(SensorModel):
+class SEN0193(SensorModel):
     LOW = 25.0
     HIGH = 65.0
 

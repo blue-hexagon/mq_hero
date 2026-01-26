@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from pprint import pprint
 
@@ -31,7 +32,10 @@ if __name__ == '__main__':
 
     if rt.is_client():
         bsc = BootstrapClient()
-        asyncio.run(bsc.bootstrap(""))
+
+        asyncio.run(bsc.bootstrap(
+            tenant_id=os.environ.get("TENANT_ID"))
+        )
 
     elif rt.is_server():
         tcs = TenantConfigService(

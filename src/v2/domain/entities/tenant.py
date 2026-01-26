@@ -1,5 +1,6 @@
 import logging
 from dataclasses import field, dataclass
+from typing import Union, List
 
 from src.v2.domain.entities.device import Device, DeviceClass
 from src.v2.domain.entities.farm import Farm
@@ -96,11 +97,15 @@ class Tenant:
             },
         )
 
-    def get_farm(self, farm_id: str) -> Farm:
-        try:
-            return self.farms[farm_id]
-        except KeyError:
-            raise KeyError(f"Farm '{farm_id}' not found in tenant '{self.id}'")
+    def get_farm(self, farm_id: str) -> Union[Farm | List[Farm]]:
+        if farm_id == '*':
+            print(list(self.farms.values()))
+            return list(self.farms.values())
+        else:
+            try:
+                return self.farms[farm_id]
+            except KeyError:
+                raise KeyError(f"Farm '{farm_id}' not found in tenant '{self.id}'")
 
     def get_mqtt_broker(self, ref: str) -> MqttBroker:
         try:

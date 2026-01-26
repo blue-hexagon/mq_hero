@@ -1,415 +1,229 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
-$id: "Mqtt-Hero-Tenant-Deployment"
-title: "IoT Tenant Deployment Schema"
-description: "Declarative schema for multi-tenant IoT deployments: topology, device/message classifications, and communication policies."
+$id: "https://example.com/schemas/tenant.schema.yaml"
+title: "IoT Multi-Tenant Topology Schema v2"
 type: object
-additionalProperties: false
-required: [ schema_version, tenants ]
+required: [schema_version, tenants]
 
 properties:
   schema_version:
     type: string
-    title: "Schema Version"
-    description: "Schema version for forward-compatible evolution (e.g., 1.0, 1.1)."
-    pattern: "^[0-9]+\\.[0-9]+$"
-    examples: [ "1.0" ]
+    pattern: '^[0-9]+\.[0-9]+$'
 
   tenants:
     type: object
-    title: "Tenants"
-    description: "Map of tenant identifiers to tenant configurations."
     minProperties: 1
     additionalProperties:
       $ref: "#/$defs/Tenant"
 
 $defs:
 
-  # -------------------------
-  # Tenant
-  # -------------------------
   Tenant:
     type: object
-    title: "Tenant"
-    description: "An isolated IoT environment (customer, MSP client, or internal environment)."
-    additionalProperties: false
-    required: [ meta, topology, definitions, policies ]
-
+    required: [meta, topology, definitions, policies]
     properties:
       meta:
         $ref: "#/$defs/TenantMeta"
-
       topology:
         $ref: "#/$defs/Topology"
-
       definitions:
         $ref: "#/$defs/Definitions"
-
       policies:
         type: array
-        title: "Policies"
-        description: "Communication rules constraining device/message interactions. Cross-references validated at runtime (loader/reference checks)."
-        default: [ ]
-        minItems: 0
         items:
           $ref: "#/$defs/Policy"
 
   TenantMeta:
     type: object
-    title: "Tenant Metadata"
-    description: "Human-readable and API-relevant metadata describing the tenant."
-    additionalProperties: false
-    required: [ full_name, short_name, api_version, description ]
-
+    required: [short_name, full_name, api_version, mqtt]
     properties:
-      full_name:
-        type: string
-        title: "Full Name"
-        description: "Descriptive name of the tenant."
-        minLength: 2
-        maxLength: 63
-        examples: [ "AgriTech Solutions" ]
-
-      short_name:
-        type: string
-        title: "Short Name"
-        description: "Short, stable identifier used in APIs, topics, and URLs (lowercase kebab-case recommended)."
-        pattern: "^[a-z0-9-]{2,31}$"
-        examples: [ "agtech" ]
-
-      api_version:
-        type: integer
-        title: "API Version"
-        description: "Tenant API version. Use to coordinate feature/behavior evolution."
-        minimum: 1
-        examples: [ 1, 2 ]
-
-      description:
-        type: string
-        title: "Description"
-        description: "Free-form description of the tenant environment."
-        minLength: 0
-        maxLength: 1023
-        examples: [ "AgriTech IoT deployment used for staging and production." ]
-
+      short_name: { type: string }
+      full_name: { type: string }
+      api_version: { type: integer, minimum: 1 }
+      description: { type: string }
       mqtt:
         type: array
-        title: "MQTT Brokers"
-        description: "List of MQTT broker configurations for this tenant."
         minItems: 1
-
         items:
-          type: object
-          additionalProperties: false
-          required: [ id, ipv4, port ]
+          $ref: "#/$defs/MqttBroker"
 
-          properties:
-            id:
-              type: string
-              title: "Broker ID"
-              minLength: 1
-              maxLength: 64
-              pattern: "^[a-zA-Z0-9_-]+$"
+  MqttBroker:
+    type: object
+    required: [id, ipv4, port]
+    properties:
+      id: { type: string }
+      username: { type: string }
+      password: { type: string }
+      ipv4:
+        type: string
+        format: ipv4
+      port:
+        type: integer
+        minimum: 1
+        maximum: 65535
+      keepalive:
+        type: integer
+        minimum: 1
 
-            username:
-              type: string
-              title: "Username"
-              minLength: 0
-              maxLength: 128
-
-            password:
-              type: string
-              title: "Password"
-              minLength: 0
-              maxLength: 256
-
-            ipv4:
-              type: string
-              title: "IPv4 Address"
-              format: ipv4
-
-            port:
-              type: integer
-              title: "Port"
-              minimum: 1
-              maximum: 65535
-
-            keepalive:
-              type: integer
-              title: "Keepalive (seconds)"
-              minimum: 10
-              maximum: 3600
-              default: 60
-
-
-  # -------------------------
-  # Topology
-  # -------------------------
   Topology:
     type: object
-    title: "Topology"
-    description: "Physical or logical layout of the tenant (farms/sites and deployed devices)."
-    additionalProperties: false
-    required: [ farms ]
-
+    required: [farms]
     properties:
       farms:
         type: array
-        title: "Farms"
-        description: "List of farms (sites/locations) belonging to this tenant."
-        default: [ ]
-        minItems: 0
+        minItems: 1
         items:
           $ref: "#/$defs/Farm"
 
   Farm:
     type: object
-    title: "Farm"
-    description: "A physical site or logical grouping of devices."
-    additionalProperties: false
-    required: [ id, name, city, devices ]
-
+    required: [id, name, city, devices]
     properties:
-      id:
-        type: string
-        title: "Farm ID"
-        description: "Stable identifier for the farm (lowercase kebab-case recommended)."
-        pattern: "^[a-z0-9-]{2,63}$"
-        examples: [ "nordmark-farm" ]
-
-      name:
-        type: string
-        title: "Farm Name"
-        description: "Human-readable name of the farm."
-        minLength: 2
-        maxLength: 63
-        examples: [ "Nordmark" ]
-
-      city:
-        type: string
-        title: "City"
-        description: "Geographical location label for the farm."
-        minLength: 2
-        maxLength: 63
-        examples: [ "Roskilde" ]
-
+      id: { type: string }
+      name: { type: string }
+      city: { type: string }
       devices:
         type: array
-        title: "Devices"
-        description: "Devices deployed at this farm."
-        default: [ ]
-        minItems: 0
         items:
           $ref: "#/$defs/Device"
 
   Device:
     type: object
-    title: "Device"
-    description: "A physical or virtual IoT device (sensor, actuator, drone, machine)."
-    additionalProperties: false
-    required: [ id, class, model, location ]
-
+    required: [id, class, driver, location, policies]
     properties:
-      id:
-        type: string
-        title: "Device ID"
-        description: "Unique identifier of the device within the tenant."
-        pattern: "^[a-z0-9-]{2,63}$"
-        examples: [ "temp-01", "drone-02" ]
-
+      id: { type: string }
       class:
         type: string
-        title: "Device Class"
-        description: "Device class identifier. Must reference a key in definitions.device_classes."
-        pattern: "^[a-z][a-z0-9-]{1,62}$"
-        examples: [ "sensor", "drone", "actuator" ]
-
-      model:
-        type: string
-        title: "Model"
-        description: "Name of a glue-file that incorporates the actual (or simulated) hardware readings"
-        minLength: 1
-        maxLength: 63
-        examples: [ "dht22.py", "bme280.py", "custom_drone.py" ]
-
-      publishes:
-        type: array
-        title: Publishes
-        description: Metrics this sensor publishes
-        minItems: 1
-        items:
-          type: object
-          required:
-            - metric
-            - unit
-          properties:
-            metric:
-              type: string
-              description: Name of the metric
-              minLength: 1
-            unit:
-              type: string
-              description: Unit of the metric
-              minLength: 1
-          additionalProperties: false
-
-
+        enum: [sensor, machine, actuator]
+      driver: { type: string }
+      type:
+        anyOf:
+          - type: string
+          - type: "null"
+      location: { type: string }
       interval:
-        type: number
-        title: "Interval"
-        description: "Time interval in seconds for each sensor reading (enforced)"
-
-      location:
-        type: string
-        title: "Location"
-        description: "Logical or physical placement label."
-        minLength: 1
-        maxLength: 63
-        examples: [ "greenhouse-1", "storage", "hangar" ]
-
+        anyOf:
+          - type: integer
+            minimum: 1
+          - type: "null"
       policies:
         type: array
-        title: "Device Policy Overrides"
-        description: "Optional list of policy names applied specifically to this device (must reference tenant policies by name)."
-        default: [ ]
-        minItems: 0
-        uniqueItems: true
+        minItems: 1
         items:
           type: string
-          pattern: "^[a-z0-9-]{2,63}$"
 
-  # -------------------------
-  # Definitions
-  # -------------------------
   Definitions:
     type: object
-    title: "Definitions"
-    description: "Tenant-local vocabularies referenced by devices and policies."
-    additionalProperties: false
-    required: [ device_classes, message_classes ]
-
+    required: [locations, device_classes, message_classes]
     properties:
       locations:
         type: array
-        title: Locations
         minItems: 1
         items:
-          type: object
-          required:
-            - name
-            - latitude
-            - longitude
-          additionalProperties: false
-          properties:
-            name:
-              type: string
-              minLength: 1
-            latitude:
-              type: number
-              minimum: -90
-              maximum: 90
-            longitude:
-              type: number
-              minimum: -180
-              maximum: 180
+          $ref: "#/$defs/Location"
 
       device_classes:
-        type: object
-        title: "Device Classes"
-        description: "Declares allowed device classifications. Keys represent class identifiers."
-        default: { }
-        additionalProperties:
-          type: object
-          description: "Optional metadata for the device class (free-form)."
-          additionalProperties: true
-        examples:
-          - sensor: { }
-            drone: { }
-            actuator: { }
+        $ref: "#/$defs/DeviceClasses"
 
       message_classes:
         type: array
-        title: "Message Classes"
-        description: "Declares message types and their topic segments."
-        default: [ ]
-        minItems: 0
         items:
           $ref: "#/$defs/MessageClass"
 
+  Location:
+    type: object
+    required: [name, latitude, longitude]
+    properties:
+      name: { type: string }
+      latitude:
+        type: number
+        minimum: -90
+        maximum: 90
+      longitude:
+        type: number
+        minimum: -180
+        maximum: 180
+
+  DeviceClasses:
+    type: object
+    properties:
+      sensor:
+        type: array
+        items:
+          $ref: "#/$defs/SensorClass"
+      machine:
+        type: array
+        items:
+          $ref: "#/$defs/MachineClass"
+      actuator:
+        type: object
+
+  SensorClass:
+    type: object
+    required: [id, driver, unit, ranges, default_interval]
+    properties:
+      id: { type: string }
+      driver: { type: string }
+      unit: { type: string }
+      ranges:
+        type: object
+        properties:
+          normal: { type: string }
+          low:
+            anyOf:
+              - type: string
+              - type: "null"
+          high:
+            anyOf:
+              - type: string
+              - type: "null"
+      default_interval:
+        type: integer
+        minimum: 1
+
+  MachineClass:
+    type: object
+    required: [id, command_set]
+    properties:
+      id: { type: string }
+      command_set:
+        type: array
+        items:
+          $ref: "#/$defs/Command"
+
+  Command:
+    type: object
+    required: [cmd]
+    properties:
+      cmd: { type: string }
+      params:
+        type: array
+        items:
+          type: string
+
   MessageClass:
     type: object
-    title: "Message Class"
-    description: "A message category (id) and its associated topic segment."
-    additionalProperties: false
-    required: [ id, topic ]
-
+    required: [id, topic, qos, retain]
     properties:
-      id:
-        type: string
-        title: "Message Class ID"
-        description: "Identifier of the message class."
-        pattern: "^[a-z][a-z0-9-]{1,62}$"
-        examples: [ "metric", "event", "alert", "cmd", "image" ]
+      id: { type: string }
+      topic: { type: string }
+      qos:
+        type: integer
+        enum: [0, 1, 2]
+      retain: { type: boolean }
 
-      topic:
-        type: string
-        title: "Topic Segment"
-        description: "Topic segment associated with this message class."
-        pattern: "^[a-z][a-z0-9-]{1,62}$"
-        examples: [ "metrics", "events", "alerts", "cmds", "images" ]
-
-  # -------------------------
-  # Policies
-  # -------------------------
   Policy:
     type: object
-    title: "Policy"
-    description: "Constrains communication for device/message classes, optionally scoped to specific farms."
-    additionalProperties: false
-    required: [ name, device_classes, message_classes, direction ]
-
+    required: [name, device_classes, message_classes, direction]
     properties:
-      name:
-        type: string
-        title: "Policy Name"
-        description: "Unique name of the policy (referenced by devices)."
-        pattern: "^[a-z0-9-]{2,63}$"
-        examples: [ "drone-outbound-commands" ]
-
+      name: { type: string }
       farms:
         type: array
-        title: "Farm Scope"
-        description: "Optional list of farm IDs where this policy applies. If omitted, applies to all farms."
-        minItems: 1
-        uniqueItems: true
-        items:
-          type: string
-          pattern: "^[a-z0-9-]{2,63}$"
-
+        items: { type: string }
       device_classes:
         type: array
-        title: "Device Classes"
-        description: "Device classes governed by this policy (must reference keys in definitions.device_classes)."
-        default: [ ]
-        minItems: 0
-        uniqueItems: true
-        items:
-          type: string
-          pattern: "^[a-z][a-z0-9-]{1,62}$"
-
+        items: { type: string }
       message_classes:
         type: array
-        title: "Message Classes"
-        description: "Message classes governed by this policy (must reference ids in definitions.message_classes)."
-        default: [ ]
-        minItems: 0
-        uniqueItems: true
-        items:
-          type: string
-          pattern: "^[a-z][a-z0-9-]{1,62}$"
-
+        items: { type: string }
       direction:
-        type: string
-        title: "Direction"
-        description: "Communication direction: PUB (publish only), SUB (subscribe only), BOTH (bidirectional)."
-        enum: [ PUB, SUB, BOTH ]
-        examples: [ "SUB" ]
+        enum: [PUB, SUB, BOTH]

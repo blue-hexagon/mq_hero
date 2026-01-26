@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=../schemas/tenant.schema.yaml
+schema_version: "1.0"
+tenants:
+  rit_agritech:
+    meta:
+      short_name: "agtech"
+      full_name: "AgriTech Solutions"
+      api_version: 1
+      description: "IoT-implementation for AgriTech Solution."
+      mqtt:
+        - id: "test"
+          username: "testuser"
+          password: "testpassword"
+          ipv4: "127.0.0.1"
+          port: 1883
+          keepalive: 600
+        - id: "prod"
+          username: "agritech"
+          password: "5ecur3Pa55w0rd"
+          ipv4: "10.100.0.33"
+          port: 1883
+          keepalive: 600
+
+    topology:
+      farms:
+        - id: "farm-taastrup"
+          name: "Rørendegaard"
+          city: "Taastrup"
+          devices:
+            - id: "temp-01"
+              class: "sensor"
+              model: "dht22.py"
+              location: "greenhouse"
+              publishes:
+                - metric: "temperature"
+                  unit: "celsius"
+                - metric: "humidity"
+                  unit: "percentage"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+            - id: "hum-01"
+              class: "sensor"
+              model: "sen0193.py"
+              location: "greenhouse"
+              publishes:
+                - metric: "humidity"
+                  unit: "percent"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+            - id: "soil-01"
+              class: "sensor"
+              model: "sen0193.py"
+              location: "northern-field"
+              publishes:
+                - metric: "soil_moisture"
+                  unit: "percent"
+              interval: 300
+              policies: [ "sensor-pub" ]
+
+            - id: "co2-01"
+              class: "sensor"
+              model: "mh_z19b.py"
+              location: "barn"
+              publishes:
+                - metric: "co2"
+                  unit: "ppm"
+              interval: 120
+
+            - id: "power-01"
+              class: "sensor"
+              model: "ina219.py"
+              location: "pump-station"
+              publishes:
+                - metric: "power"
+                  unit: "watt"
+              interval: 5
+              policies: [ "sensor-pub" ]
+
+            - id: "irrig-01"
+              class: "actuator"
+              model: "valve-v2"
+              location: "greenhouse"
+              interval: 5
+              policies: [ "command-sub" ]
+
+            - id: "drone-01"
+              class: "drone"
+              model: "x4-quadcopter"
+              location: "cropfield"
+              policies: [ "command-sub" ]
+              interval: 5
+
+        - id: "farm-roskilde"
+          name: "Nordmark"
+          city: "Roskilde"
+          devices:
+            - id: "temp-01"
+              class: "sensor"
+              model: "dht22.py"
+              location: "cropfield"
+              policies: [ "sensor-pub" ]
+              interval: 5
+
+    definitions:
+      locations:
+        - name: "greenhouse"
+          latitude: 55.67390
+          longitude: 12.56550
+        - name: "northern-field"
+          latitude: 56.26392
+          longitude: 10.50178
+        - name: "pump-station"
+          latitude: 54.93222
+          longitude: 9.80750
+        - name: "barn"
+          latitude: 55.40375
+          longitude: 11.35420
+        - name: "cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
+      device_classes:
+        drone: { }
+        sensor: { }
+        actuator: { }
+      message_classes:
+        - id: metric
+          topic: metrics
+        - id: alert
+          topic: alerts
+        - id: command
+          topic: cmds
+        - id: image
+          topic: images
+
+    policies:
+      - name: "sensor-pub"
+        farms: [ "farm-taastrup", "farm-roskilde" ]
+        device_classes: [ "sensor" ]
+        message_classes: [ "metric","alert" ]
+        direction: PUB
+      - name: "command-sub"
+        farms: [ "farm-taastrup", "farm-roskilde" ]
+        device_classes: [ "actuator","drone" ]
+        message_classes: [ "command" ]
+        direction: BOTH
