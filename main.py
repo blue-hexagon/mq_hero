@@ -42,10 +42,11 @@ if __name__ == '__main__':
             enable_debug_modules=[],
             show_empty_context=False,
         )
+        vfs = VirtualFS(
+            root=Path(".")
+        )
         tcs = TenantConfigService(
-            fs=VirtualFS(
-                root=Path(".")
-            ),
+            fs=vfs,
             tenant_assembler=TenantAssembler(
                 registry=DomainRegistry()
             ),
@@ -56,8 +57,12 @@ if __name__ == '__main__':
         registry = tcs.tenant_assembler.registry
 
         for tenant in registry.iter_tenants():
-            pprint(tenant)
             topics = TopicGenerationService(tenant=tenant)
-            pprint(list(topics.generate_topics()))
-            pprint(list(registry.iter_devices(tenant_id=tenant.id)))
-        logging.getLogger(__name__).info("Server: Terminated successfully.")
+
+            acl_path = vfs.root / f"{tenant.id}.acl"
+
+            with open(acl_path, "w", encoding="utf-8") as f:
+                for topic in topics.generate_topics(with_trx_rules=True):
+                    f.write(f"{topic}\n")
+            # pprint(list(registry.iter_devices(tenant_id=tenant.id)))
+        # logging.getLogger(__name__).info("Server: Terminated successfully.")

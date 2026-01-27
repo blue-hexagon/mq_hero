@@ -9,8 +9,8 @@ tenants:
       description: "Tenant for testing."
       mqtt:
         - id: "test"
-          username: "testuser"
-          password: "testpassword"
+          username: "rit_test"
+          password: "KOde12345!!?"
           ipv4: "127.0.0.1"
           port: 1883
           keepalive: 600
@@ -70,8 +70,8 @@ tenants:
       description: "IoT-implementation for AgriTech Solution."
       mqtt:
         - id: "prod"
-          username: "agritech"
-          password: "5ecur3Pa55w0rd"
+          username: "simulator"
+          password: "KOde12345!!?"
           ipv4: "127.0.0.1"
           port: 1883
           keepalive: 120

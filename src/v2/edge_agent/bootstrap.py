@@ -22,9 +22,12 @@ from src.v2.edge_agent.imports import *  # noqa
 
 def build_mqtt_client(tenant) -> MqttClient:
     broker = next(iter(tenant.mqtt_brokers.values()))
+    # TODO;:MARKER;:FIXTHIS
+    # broker = tenant.mqtt_brokers
+    # print(broker)
 
     client = MqttClient()
-    client.create(broker, client_id="test")
+    client.create(broker, client_id=tenant.id)
     client.connect()
 
     return client
@@ -52,7 +55,7 @@ class BootstrapClient:
         mas.attach_modules(tenant)
 
         mqtt_client = build_mqtt_client(tenant)
-        print(mqtt_client)
+        # print(mqtt_client)
 
         topic_service = TopicGenerationService(tenant)
         logger.debug(topic_service)

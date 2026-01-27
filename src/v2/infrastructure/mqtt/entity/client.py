@@ -46,11 +46,11 @@ class MqttClient:
     # ---- callbacks ----
 
     @classmethod
-    def on_connect(cls,client, userdata, flags, rc):
+    def on_connect(cls, client, userdata, flags, rc):
         cls.logger.info(f"[MQTT] Connected rc={rc}")
 
     @classmethod
-    def on_disconnect(cls,client, userdata, rc):
+    def on_disconnect(cls, client, userdata, rc):
         cls.logger.info("[MQTT] Disconnected – retrying")
 
     @staticmethod

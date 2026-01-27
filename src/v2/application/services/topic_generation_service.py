@@ -35,6 +35,7 @@ class TopicGenerationService:
         self._validate_wildcards(ordered)
 
         return "/".join(seg.token for seg in ordered)
+
     def metric_topic(self, device: Device) -> str:
         return self.build([
             self._tenant.get_topic_segment(),
@@ -52,6 +53,7 @@ class TopicGenerationService:
             device.get_topic_segment(),
             TopicSegment("message", "alert"),
         ])
+
     @staticmethod
     def _validate_required_segments(segments: list[TopicSegment]) -> None:
         required = {"tenant", "farm", "device", "message"}
@@ -105,7 +107,7 @@ class TopicGenerationService:
         raise ValueError("Invalid scope")
 
     @functools.lru_cache
-    def generate_topics(self) -> list[str]:
+    def generate_topics(self, with_trx_rules=False) -> list[str]:
         topics = []
         logger = logging.getLogger(__name__)
 
@@ -138,8 +140,18 @@ class TopicGenerationService:
                         self.apply_scope(device.get_topic_segment(), TopicScope.SINGLE),
                         self.apply_scope(contract.get_topic_segment(), TopicScope.SINGLE),
                     ]
+                    if with_trx_rules:
+                        if direction == direction.PUB:
+                            topics.append(f"topic read " + self.build(segments))
+                        elif direction == direction.SUB:
+                            topics.append(f"topic write " + self.build(segments))
+                        elif direction == direction.BOTH:
+                            for _, z in enumerate(['read', 'write']):
+                                topics.append(f"topic {z} " + self.build(segments))
 
-                    topics.append(self.build(segments))
+                    else:
+                        topics.append(self.build(segments))
+
         if len(topics) != len(set(topics)):
             from collections import Counter
 

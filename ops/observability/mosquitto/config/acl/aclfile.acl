@@ -1,0 +1,69 @@
+user rit_test
+topic read rit_internal_test/testfarm01/sensor/room-temp-01/metric
+topic read rit_internal_test/testfarm01/sensor/room-temp-01/alert
+
+user simulator
+topic write rit_customer_agritech/rorendegaard/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/rorendegaard/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/rorendegaard/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/rorendegaard/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/nordmarkgaard/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/nordmarkgaard/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/nordmarkgaard/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/nordmarkgaard/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/troensegaard/sensor/room-hum-01/metric
+topic write rit_customer_agritech/troensegaard/sensor/room-hum-01/alert
+topic write rit_customer_agritech/troensegaard/sensor/room-temp-01/metric
+topic write rit_customer_agritech/troensegaard/sensor/room-temp-01/alert
+topic write rit_customer_agritech/troensegaard/sensor/electricity-01/metric
+topic write rit_customer_agritech/troensegaard/sensor/electricity-01/alert
+topic write rit_customer_agritech/rosengaarden/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/rosengaarden/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/rosengaarden/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/rosengaarden/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/rosengaarden/sensor/room-hum-01/metric
+topic write rit_customer_agritech/rosengaarden/sensor/room-hum-01/alert
+topic write rit_customer_agritech/rosengaarden/sensor/room-temp-01/metric
+topic write rit_customer_agritech/rosengaarden/sensor/room-temp-01/alert
+topic write rit_customer_agritech/rosengaarden/sensor/room-co2-01/metric
+topic write rit_customer_agritech/rosengaarden/sensor/room-co2-01/alert
+topic write rit_customer_agritech/rosengaarden/sensor/electricity-01/metric
+topic write rit_customer_agritech/rosengaarden/sensor/electricity-01/alert
+topic write rit_customer_agritech/hoejbakkegaard/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/hoejbakkegaard/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/hoejbakkegaard/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/hoejbakkegaard/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/tingstedgaard/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/tingstedgaard/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/tingstedgaard/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/tingstedgaard/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/tingstedgaard/sensor/room-hum-01/metric
+topic write rit_customer_agritech/tingstedgaard/sensor/room-hum-01/alert
+topic write rit_customer_agritech/tingstedgaard/sensor/room-temp-01/metric
+topic write rit_customer_agritech/tingstedgaard/sensor/room-temp-01/alert
+topic write rit_customer_agritech/tingstedgaard/sensor/room-co2-01/metric
+topic write rit_customer_agritech/tingstedgaard/sensor/room-co2-01/alert
+topic write rit_customer_agritech/halberggaard/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/halberggaard/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/halberggaard/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/halberggaard/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/rorstigaard/sensor/earth-hum-01/metric
+topic write rit_customer_agritech/rorstigaard/sensor/earth-hum-01/alert
+topic write rit_customer_agritech/rorstigaard/sensor/earth-temp-01/metric
+topic write rit_customer_agritech/rorstigaard/sensor/earth-temp-01/alert
+topic write rit_customer_agritech/tagensgaard/sensor/room-hum-01/metric
+topic write rit_customer_agritech/tagensgaard/sensor/room-hum-01/alert
+topic write rit_customer_agritech/tagensgaard/sensor/room-temp-01/metric
+topic write rit_customer_agritech/tagensgaard/sensor/room-temp-01/alert
+topic write rit_customer_agritech/tagensgaard/sensor/electricity-01/metric
+topic write rit_customer_agritech/tagensgaard/sensor/electricity-01/alert
+topic write rit_customer_agritech/tagensgaard/machine/drone-01/command
+
+user telegraf
+topic read rit_customer_agritech/+/sensor/+/metric
+topic read rit_customer_agritech/+/sensor/+/alert
+
+user admin
+topic readwrite #
+
+

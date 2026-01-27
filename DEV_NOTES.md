@@ -9,3 +9,10 @@
 # Schema Documentation
 generate-schema-doc .\src\v2\assets\schemas\tenant.schema.yaml ./docs/schema.html
 
+# Docker
+docker compose up -d 
+
+## Nuke (W/O Images)
+docker compose down -v 
+docker system prune --volumes
+<Y>

@@ -57,7 +57,8 @@ class SensorModel(ABC):
 
     def _location_payload(self) -> dict:
         return {
-            "name": self.location.name,
+            "farm": self.location.name.split(".")[0],
+            "area": self.location.name.split(".")[1],
             "lat": self.location.latitude,
             "lng": self.location.longitude,
         }

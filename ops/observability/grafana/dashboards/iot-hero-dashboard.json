@@ -1,0 +1,70 @@
+{
+  "id": null,
+  "uid": "iot-hero-core",
+  "title": "IoT-Hero · Sensor Metrics",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "tags": ["iot", "mqtt", "influxdb"],
+  "templating": {
+    "list": [
+      {
+        "name": "tenant",
+        "type": "query",
+        "datasource": "InfluxDB",
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"mqtt\", tag: \"tenant\")",
+        "refresh": 1
+      },
+      {
+        "name": "farm",
+        "type": "query",
+        "datasource": "InfluxDB",
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"mqtt\", tag: \"farm\")",
+        "refresh": 1
+      },
+      {
+        "name": "device_id",
+        "type": "query",
+        "datasource": "InfluxDB",
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"mqtt\", tag: \"device_id\")",
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Temperature (°C)",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "from(bucket: \"mqtt\")\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) =>\n    r._measurement == \"iot_events\" and\n    r.tenant == v.tenant and\n    r.farm == v.farm and\n    r.device_id == v.device_id and\n    r._field == \"temperature\"\n  )\n  |> aggregateWindow(every: 1m, fn: mean)"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Humidity (%)",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "from(bucket: \"mqtt\")\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) =>\n    r._measurement == \"iot_events\" and\n    r.tenant == v.tenant and\n    r.farm == v.farm and\n    r.device_id == v.device_id and\n    r._field == \"humidity\"\n  )\n  |> aggregateWindow(every: 1m, fn: mean)"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CO₂ (ppm)",
+      "datasource": "InfluxDB",
+      "targets": [
+        {
+          "query": "from(bucket: \"mqtt\")\n  |> range(start: v.timeRangeStart)\n  |> filter(fn: (r) =>\n    r._measurement == \"iot_events\" and\n    r.tenant == v.tenant and\n    r.farm == v.farm and\n    r.device_id == v.device_id and\n    r._field == \"co2\"\n  )\n  |> aggregateWindow(every: 1m, fn: mean)"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 }
+    }
+  ]
+}
