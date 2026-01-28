@@ -1,0 +1,504 @@
+# yaml-language-server: $schema=../schemas/tenant.schema.yaml
+schema_version: "2.0"
+tenants:
+  rit_internal_test:
+    meta:
+      short_name: "rit_test"
+      full_name: "RIT Test Tenant"
+      api_version: 1
+      description: "Tenant for testing."
+      mqtt:
+        - id: "test"
+          username: "rit_test"
+          password: "KOde12345!!?"
+          ipv4: "127.0.0.1"
+          port: 1883
+          keepalive: 600
+
+    topology:
+      farms:
+        - id: "testfarm01"
+          name: "Test Farm Nr. 1"
+          city: "Ringsted"
+          devices:
+            - id: "room-temp-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_temperature"
+              location: "ringsted.hq"
+              policies: [ "sensor-pubsub" ]
+
+    definitions:
+      locations:
+        - name: "ringsted.hq"
+          latitude: 56.72814
+          longitude: 10.11240
+
+      device_classes:
+        sensor:
+          - id: "room-temp01"
+            driver: "dht22"
+            unit: "°C"
+            ranges:
+              normal: "18-23"
+              low: "< 17"
+              high: "> 24"
+            default_interval: 2
+
+      message_classes:
+        - id: metric
+          topic: metrics
+          qos: 1
+          retain: false
+        - id: alert
+          topic: alerts
+          qos: 2
+          retain: true
+
+    policies:
+      - name: "sensor-pubsub"
+        farms: [ "*" ]
+        device_classes: [ "sensor" ]
+        message_classes: [ "metric","alert" ]
+        direction: BOTH
+
+  rit_customer_agritech:
+    meta:
+      short_name: "agtech"
+      full_name: "AgriTech Solutions"
+      api_version: 1
+      description: "IoT-implementation for AgriTech Solution."
+      mqtt:
+        - id: "prod"
+          username: "simulator"
+          password: "KOde12345!!?"
+          ipv4: "127.0.0.1"
+          port: 1883
+          keepalive: 120
+
+    topology:
+      farms:
+        - id: "rorendegaard"
+          name: "Rorendegaard"
+          city: "Taastrup"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "rorendegaard.cropfield"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "rorendegaard.cropfield"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+        - id: "nordmarkgaard"
+          name: "Nordmarkgaard"
+          city: "Taastrup"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "nordmarkgaard.cropfield"
+              interval: 120
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "nordmarkgaard.cropfield"
+              interval: 180
+              policies: [ "sensor-pub" ]
+
+        - id: "troensegaard"
+          name: "Troensegaard"
+          city: "Taastrup"
+          devices:
+            - id: "room-hum-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_humidity"
+              location: "troensegaard.barn"
+              interval: 10
+              policies: [ "sensor-pub" ]
+
+            - id: "room-temp-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_temperature"
+              location: "troensegaard.barn"
+              interval: 20
+              policies: [ "sensor-pub" ]
+
+            - id: "electricity-01"
+              class: "sensor"
+              driver: "sdm630m"
+              type: "power"
+              location: "troensegaard.barn"
+              interval: 15
+              policies: [ "sensor-pub" ]
+
+        - id: "rosengaarden"
+          name: "Rosengaarden"
+          city: "Roskilde"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "rosengaarden.greenhouse"
+              interval: 120
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "rosengaarden.greenhouse"
+              interval: 180
+              policies: [ "sensor-pub" ]
+
+            - id: "room-hum-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_humidity"
+              location: "rosengaarden.greenhouse"
+              interval: 10
+              policies: [ "sensor-pub" ]
+
+            - id: "room-temp-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_temperature"
+              location: "rosengaarden.greenhouse"
+              interval: 20
+              policies: [ "sensor-pub" ]
+
+            - id: "room-co2-01"
+              class: "sensor"
+              driver: "mh_z19b"
+              type: "co2_air"
+              location: "rosengaarden.greenhouse"
+              interval: 5
+              policies: [ "sensor-pub" ]
+
+            - id: "electricity-01"
+              class: "sensor"
+              driver: "sdm630m"
+              type: "power"
+              location: "rosengaarden.barn"
+              interval: 15
+              policies: [ "sensor-pub" ]
+
+        - id: "hoejbakkegaard"
+          name: "Hoejbakkegaard"
+          city: "Roskilde"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "hoejbakkegaard.cropfield"
+              interval: 180
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "hoejbakkegaard.cropfield"
+              interval: 180
+              policies: [ "sensor-pub" ]
+
+        - id: "tingstedgaard"
+          name: "Tingstedgaard"
+          city: "Ringsted"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "tingstedgaard.greenhouse"
+              interval: 120
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "tingstedgaard.greenhouse"
+              interval: 180
+              policies: [ "sensor-pub" ]
+
+            - id: "room-hum-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_humidity"
+              location: "tingstedgaard.greenhouse"
+              interval: 10
+              policies: [ "sensor-pub" ]
+
+            - id: "room-temp-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_temperature"
+              location: "tingstedgaard.greenhouse"
+              interval: 20
+              policies: [ "sensor-pub" ]
+
+            - id: "room-co2-01"
+              class: "sensor"
+              driver: "mh_z19b"
+              type: "co2_air"
+              location: "tingstedgaard.greenhouse"
+              interval: 5
+              policies: [ "sensor-pub" ]
+
+        - id: "halberggaard"
+          name: "Halberggaard"
+          city: "Ringsted"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "halberggaard.cropfield"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "halberggaard.cropfield"
+              interval: 60
+              policies: [ "sensor-pub" ]
+
+        - id: "rorstigaard"
+          name: "Rorstigaard"
+          city: "Ringsted"
+          devices:
+            - id: "earth-hum-01"
+              class: "sensor"
+              driver: "sen0193"
+              type: "soil_humidity"
+              location: "rorstigaard.cropfield"
+              interval: 120
+              policies: [ "sensor-pub" ]
+
+            - id: "earth-temp-01"
+              class: "sensor"
+              driver: "ds18b20"
+              type: "soil_temperature"
+              location: "rorstigaard.cropfield"
+              interval: 120
+              policies: [ "sensor-pub" ]
+
+        - id: "tagensgaard"
+          name: "Tagensgaard"
+          city: "Ringsted"
+          devices:
+            - id: "room-hum-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_humidity"
+              location: "tagensgaard.barn"
+              interval: 10
+              policies: [ "sensor-pub" ]
+
+            - id: "room-temp-01"
+              class: "sensor"
+              driver: "dht22"
+              type: "room_temperature"
+              location: "tagensgaard.barn"
+              interval: 20
+              policies: [ "sensor-pub" ]
+
+            - id: "electricity-01"
+              class: "sensor"
+              driver: "sdm630m"
+              type: "power"
+              location: "tagensgaard.barn"
+              interval: 15
+              policies: [ "sensor-pub" ]
+
+            - id: "drone-01"
+              class: "machine"
+              driver: "generic_drone"
+              location: "tagensgaard.barn"
+              policies: [ "command-sub" ]
+
+    definitions:
+      device_classes:
+        machine:
+          - id: "generic_drone"
+            command_set:
+              - cmd: takeoff
+              - cmd: set_speed
+                params: [ meters_per_second ]
+              - cmd: goto
+                params: [ gps_cords ]
+              - cmd: capture
+              - cmd: return
+              - cmd: transfer
+                params: [ recent, all ]
+        sensor:
+          - id: "soil_humidity"
+            driver: "sen0193"
+            unit: "%"
+            ranges:
+              normal: "20-60 %"
+              low: "< 20 %"
+              high: "> 70 %"
+            default_interval: 120
+
+          - id: "room_humidity"
+            driver: "dht22"
+            unit: "% RH"
+            ranges:
+              normal: "40-70 %"
+              low: "< 30 %"
+              high: "> 80 %"
+            default_interval: 30
+
+          - id: "soil_temperature"
+            driver: "ds18b20"
+            unit: "°C"
+            ranges:
+              normal: "10-25 °C"
+              low: "< 5 °C"
+              high: "> 30 °C"
+            default_interval: 60
+
+          - id: "room_temperature"
+            driver: "dht22"
+            unit: "°C"
+            ranges:
+              normal: "18-28 °C"
+              low: "< 15 °C"
+              high: "> 35 °C"
+            default_interval: 20
+
+          - id: "co2_air"
+            driver: "mh_z19b"
+            unit: "ppm"
+            ranges:
+              normal: "400-1200 ppm"
+              low: "< 350 ppm"
+              high: "> 2000 ppm"
+            default_interval: 5
+
+          - id: "voltage"
+            driver: "sdm630m"
+            unit: "V"
+            ranges:
+              normal: "400 V"
+              low: null
+              high: null
+            default_interval: 60
+
+          - id: "current"
+            driver: "sdm630m"
+            unit: "A"
+            ranges:
+              normal: "0-50 A"
+              low: null
+              high: null
+            default_interval: 60
+
+          - id: "power"
+            driver: "sdm630m"
+            unit: "W"
+            ranges:
+              normal: "15kW-25kW"
+              low: "< 10kW"
+              high: "> 30kW"
+            default_interval: 60
+
+        actuator: { }
+      message_classes:
+        - id: metric
+          topic: metrics
+          qos: 1
+          retain: false
+        - id: alert
+          topic: alerts
+          qos: 2
+          retain: true
+        - id: command
+          topic: commands
+          qos: 2
+          retain: true
+
+      locations:
+        - name: "rorendegaard.cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
+        - name: "nordmarkgaard.cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
+        - name: "troensegaard.barn"
+          latitude: 55.40375
+          longitude: 11.35420
+
+        - name: "rosengaarden.greenhouse"
+          latitude: 55.67390
+          longitude: 12.56550
+
+        - name: "rosengaarden.barn"
+          latitude: 55.40375
+          longitude: 11.35420
+
+        - name: "hoejbakkegaard.cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
+        - name: "tingstedgaard.greenhouse"
+          latitude: 55.67390
+          longitude: 12.56550
+
+        - name: "halberggaard.cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
+        - name: "rorstigaard.cropfield"
+          latitude: 56.72814
+          longitude: 10.11240
+
+        - name: "tagensgaard.barn"
+          latitude: 55.40375
+          longitude: 11.35420
+
+
+
+    policies:
+      - name: "sensor-pub"
+        farms:
+          - rorendegaard
+          - nordmarkgaard
+          - troensegaard
+          - rosengaarden
+          - hoejbakkegaard
+          - tingstedgaard
+          - halberggaard
+          - rorstigaard
+          - tagensgaard
+        device_classes: [ "sensor" ]
+        message_classes: [ "metric","alert" ]
+        direction: PUB
+      - name: "command-sub"
+        farms:
+          - tagensgaard
+        device_classes: [ "machine" ]
+        message_classes: [ "command" ]
+        direction: SUB

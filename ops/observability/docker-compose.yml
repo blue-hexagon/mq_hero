@@ -31,7 +31,7 @@ services:
       DOCKER_INFLUXDB_INIT_USERNAME: admin
       DOCKER_INFLUXDB_INIT_PASSWORD: admin123
       DOCKER_INFLUXDB_INIT_ORG: iot
-      DOCKER_INFLUXDB_INIT_BUCKET: mqtt
+      DOCKER_INFLUXDB_INIT_BUCKET: mqtt_metrics
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: Sv3ndeT02qkdencauCucumfbEr
     networks:
       - iot_net
