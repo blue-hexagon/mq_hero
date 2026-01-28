@@ -13,6 +13,7 @@ class SDM630M(SensorModel):
         await asyncio.sleep(0.02)
 
         return {
-            "temperature": round(random.uniform(18.0, 30.0), 2),
-            "humidity": round(random.uniform(40.0, 85.0), 2),
+            "amperage": round(random.uniform(1.0, 80.0), 2),
+            "voltage": round(random.uniform(385.0, 415.0), 2),
+            "wattage": round(random.uniform(1.0, 60000.0), 2),
         }

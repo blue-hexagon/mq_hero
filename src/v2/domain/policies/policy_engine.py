@@ -1,4 +1,3 @@
-from pprint import pprint
 from typing import Iterable, Optional
 
 from src.v2.domain.entities.device import Device

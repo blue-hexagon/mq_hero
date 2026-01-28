@@ -1,7 +1,6 @@
-from typing import Protocol, List
 from src.v2.domain.entities.device import Device
 from src.v2.domain.entities.location import Location
-from typing import Protocol, Dict, Any
+from typing import Protocol, Dict, Any, List
 
 
 class Attachable(Protocol):

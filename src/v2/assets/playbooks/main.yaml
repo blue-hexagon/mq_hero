@@ -72,7 +72,7 @@ tenants:
         - id: "prod"
           username: "simulator"
           password: "KOde12345!!?"
-          ipv4: "127.0.0.1"
+          ipv4: "10.60.82.29"
           port: 1883
           keepalive: 120
 
@@ -478,8 +478,6 @@ tenants:
         - name: "tagensgaard.barn"
           latitude: 55.40375
           longitude: 11.35420
-
-
 
     policies:
       - name: "sensor-pub"

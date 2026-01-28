@@ -13,6 +13,5 @@ class DS18B20(SensorModel):
         await asyncio.sleep(0.02)
 
         return {
-            "temperature": round(random.uniform(18.0, 30.0), 2),
-            "humidity": round(random.uniform(40.0, 85.0), 2),
+            "soil_temperature": round(random.uniform(18.0, 30.0), 2)
         }

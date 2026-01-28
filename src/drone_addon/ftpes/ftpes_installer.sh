@@ -2,16 +2,17 @@
 ######################################################################################
 #------------------------------------ Input Data ------------------------------------#
 ######################################################################################
+DEPARTMENTS_STR="image,video"
+
 if [ -z "$COMPANY_NAME" ]; then
-    COMPANY_NAME="rit"
+    COMPANY_NAME="agritech"
 fi
 if [ -z "$COMPANY_DOMAIN" ]; then
-    COMPANY_DOMAIN="rit.local"
+    COMPANY_DOMAIN="agritech.rit.local"
 fi
 if [ -z "$HOST_IP" ]; then
     HOST_IP="172.16.20.198"
 fi
-$DEPARTMENTS_STR="rit_agritech_drone"
 if [[ -z "$DEPARTMENTS_STR" ]]; then
     echo "DEPARTMENTS_STR is empty! Exiting."
     exit 1

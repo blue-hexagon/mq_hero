@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Protocol
+from typing import TypeVar, Generic
 
 from src.v2.application.services.sensor_factory import SensorFactory
-from src.v2.domain.entities.device_class import DeviceClass
 from src.v2.domain.entities.tenant import Tenant
 from src.v2.application.services.topic_generation_service import TopicGenerationService
 from src.v2.infrastructure.iot.attachable import Attachable
@@ -27,7 +26,7 @@ class AttachmentService(Generic[T_Attachable], ABC):
 # class DeviceAttachmentService(AttachmentService[Tenant]):
 class ModuleAttachmentService():
 
-    def attach_modules(self, tenant: Tenant):
+    def attach_modules(self, tenant: Tenant):  # noqa; TODO:
         topic_service = TopicGenerationService(tenant)
         all_topics = topic_service.generate_topics()
 

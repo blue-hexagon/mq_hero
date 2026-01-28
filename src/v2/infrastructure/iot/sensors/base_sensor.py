@@ -32,8 +32,8 @@ class SensorModel(ABC):
             "schema": "sensor.metric.v1",
             "ts": ts,
             "device_id": self.device_id,
-            "location": self._location_payload(),
-            "metrics": metrics,
+            **self._location_payload(),
+            **metrics,
         }
 
     # ---------- Alerts ----------
@@ -49,7 +49,7 @@ class SensorModel(ABC):
             "schema": "sensor.alert.v1",
             "ts": ts,
             "device_id": self.device_id,
-            "location": self._location_payload(),
+            **self._location_payload(),
             "alert": alert,
         }
 

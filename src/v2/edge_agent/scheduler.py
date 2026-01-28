@@ -10,7 +10,7 @@ class SensorScheduler:
     async def run_sensor(self, sensor):
         while True:
             metric_payload = await sensor.read()
-            metrics = metric_payload["metrics"]
+            metrics = metric_payload
 
             alerts = await sensor.check_alerts(metrics)
             print(f"{sensor.device} =>")

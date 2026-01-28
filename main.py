@@ -1,7 +1,9 @@
+from __future__ import annotations
 import logging
 import os
+import signal
+import sys
 from pathlib import Path
-from pprint import pprint
 
 from src.v2.application.runtime.context import RuntimeContext
 from src.v2.application.services.tenant_assembler import TenantAssembler
@@ -16,9 +18,16 @@ from dotenv import load_dotenv
 from src.v2.application.services.topic_generation_service import TopicGenerationService
 import asyncio
 
+def shutdown_handler(signum, frame):
+    print(f"Received signal {signum}, shutting down cleanly")
+    # close sockets, flush buffers, stop threads, etc.
+    sys.exit(0)
+
 if __name__ == '__main__':
     load_dotenv(".env")
     rt = RuntimeContext()
+    signal.signal(signal.SIGTERM, shutdown_handler)
+    signal.signal(signal.SIGINT, shutdown_handler)
 
     if rt.is_client():
         setup_logging(
@@ -66,3 +75,4 @@ if __name__ == '__main__':
                     f.write(f"{topic}\n")
             # pprint(list(registry.iter_devices(tenant_id=tenant.id)))
         # logging.getLogger(__name__).info("Server: Terminated successfully.")
+

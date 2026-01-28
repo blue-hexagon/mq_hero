@@ -2,7 +2,6 @@ import logging
 from enum import Enum
 from typing import Literal
 
-import dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
 

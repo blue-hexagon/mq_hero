@@ -14,7 +14,7 @@ class SEN0193(SensorModel):
     async def read_metrics(self) -> Dict[str, float]:
         await asyncio.sleep(0.01)
         return {
-            "soil_moisture": float(random.randint(20, 70))
+            "soil_humidity": float(random.randint(20, 70))
         }
 
     async def check_alerts(self, metrics: Dict[str, float]) -> list[dict]:

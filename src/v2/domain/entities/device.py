@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import List
 
 from src.v2.domain.entities.device_class import DeviceClass
 from src.v2.domain.entities.location import Location
