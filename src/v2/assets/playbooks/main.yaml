@@ -1,67 +1,6 @@
 # yaml-language-server: $schema=../schemas/tenant.schema.yaml
 schema_version: "2.0"
 tenants:
-  rit_internal_test:
-    meta:
-      short_name: "rit_test"
-      full_name: "RIT Test Tenant"
-      api_version: 1
-      description: "Tenant for testing."
-      mqtt:
-        - id: "test"
-          username: "rit_test"
-          password: "KOde12345!!?"
-          ipv4: "127.0.0.1"
-          port: 1883
-          keepalive: 600
-
-    topology:
-      farms:
-        - id: "testfarm01"
-          name: "Test Farm Nr. 1"
-          city: "Ringsted"
-          devices:
-            - id: "room-temp-01"
-              class: "sensor"
-              driver: "dht22"
-              type: "room_temperature"
-              location: "ringsted.hq"
-              policies: [ "sensor-pubsub" ]
-
-    definitions:
-      locations:
-        - name: "ringsted.hq"
-          latitude: 56.72814
-          longitude: 10.11240
-
-      device_classes:
-        sensor:
-          - id: "room-temp01"
-            driver: "dht22"
-            unit: "°C"
-            ranges:
-              normal: "18-23"
-              low: "< 17"
-              high: "> 24"
-            default_interval: 2
-
-      message_classes:
-        - id: metric
-          topic: metrics
-          qos: 1
-          retain: false
-        - id: alert
-          topic: alerts
-          qos: 2
-          retain: true
-
-    policies:
-      - name: "sensor-pubsub"
-        farms: [ "*" ]
-        device_classes: [ "sensor" ]
-        message_classes: [ "metric","alert" ]
-        direction: BOTH
-
   rit_customer_agritech:
     meta:
       short_name: "agtech"
@@ -82,7 +21,7 @@ tenants:
           name: "Rorendegaard"
           city: "Taastrup"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -90,7 +29,7 @@ tenants:
               interval: 60
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -102,7 +41,7 @@ tenants:
           name: "Nordmarkgaard"
           city: "Taastrup"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -110,7 +49,7 @@ tenants:
               interval: 120
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -122,7 +61,7 @@ tenants:
           name: "Troensegaard"
           city: "Taastrup"
           devices:
-            - id: "room-hum-01"
+            - id: "room-hum-02"
               class: "sensor"
               driver: "dht22"
               type: "room_humidity"
@@ -130,7 +69,7 @@ tenants:
               interval: 10
               policies: [ "sensor-pub" ]
 
-            - id: "room-temp-01"
+            - id: "room-temp-02"
               class: "sensor"
               driver: "dht22"
               type: "room_temperature"
@@ -138,7 +77,7 @@ tenants:
               interval: 20
               policies: [ "sensor-pub" ]
 
-            - id: "electricity-01"
+            - id: "electricity-02"
               class: "sensor"
               driver: "sdm630m"
               type: "power"
@@ -150,7 +89,7 @@ tenants:
           name: "Rosengaarden"
           city: "Roskilde"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -158,7 +97,7 @@ tenants:
               interval: 120
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -166,7 +105,7 @@ tenants:
               interval: 180
               policies: [ "sensor-pub" ]
 
-            - id: "room-hum-01"
+            - id: "room-hum-02"
               class: "sensor"
               driver: "dht22"
               type: "room_humidity"
@@ -174,7 +113,7 @@ tenants:
               interval: 10
               policies: [ "sensor-pub" ]
 
-            - id: "room-temp-01"
+            - id: "room-temp-02"
               class: "sensor"
               driver: "dht22"
               type: "room_temperature"
@@ -182,7 +121,7 @@ tenants:
               interval: 20
               policies: [ "sensor-pub" ]
 
-            - id: "room-co2-01"
+            - id: "room-co2-02"
               class: "sensor"
               driver: "mh_z19b"
               type: "co2_air"
@@ -190,7 +129,7 @@ tenants:
               interval: 5
               policies: [ "sensor-pub" ]
 
-            - id: "electricity-01"
+            - id: "electricity-02"
               class: "sensor"
               driver: "sdm630m"
               type: "power"
@@ -202,7 +141,7 @@ tenants:
           name: "Hoejbakkegaard"
           city: "Roskilde"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -210,7 +149,7 @@ tenants:
               interval: 180
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -222,7 +161,7 @@ tenants:
           name: "Tingstedgaard"
           city: "Ringsted"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -230,7 +169,7 @@ tenants:
               interval: 120
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -238,7 +177,7 @@ tenants:
               interval: 180
               policies: [ "sensor-pub" ]
 
-            - id: "room-hum-01"
+            - id: "room-hum-02"
               class: "sensor"
               driver: "dht22"
               type: "room_humidity"
@@ -246,7 +185,7 @@ tenants:
               interval: 10
               policies: [ "sensor-pub" ]
 
-            - id: "room-temp-01"
+            - id: "room-temp-02"
               class: "sensor"
               driver: "dht22"
               type: "room_temperature"
@@ -254,7 +193,7 @@ tenants:
               interval: 20
               policies: [ "sensor-pub" ]
 
-            - id: "room-co2-01"
+            - id: "room-co2-02"
               class: "sensor"
               driver: "mh_z19b"
               type: "co2_air"
@@ -266,7 +205,7 @@ tenants:
           name: "Halberggaard"
           city: "Ringsted"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -274,7 +213,7 @@ tenants:
               interval: 60
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -286,7 +225,7 @@ tenants:
           name: "Rorstigaard"
           city: "Ringsted"
           devices:
-            - id: "earth-hum-01"
+            - id: "earth-hum-02"
               class: "sensor"
               driver: "sen0193"
               type: "soil_humidity"
@@ -294,7 +233,7 @@ tenants:
               interval: 120
               policies: [ "sensor-pub" ]
 
-            - id: "earth-temp-01"
+            - id: "earth-temp-02"
               class: "sensor"
               driver: "ds18b20"
               type: "soil_temperature"
@@ -306,7 +245,7 @@ tenants:
           name: "Tagensgaard"
           city: "Ringsted"
           devices:
-            - id: "room-hum-01"
+            - id: "room-hum-02"
               class: "sensor"
               driver: "dht22"
               type: "room_humidity"
@@ -314,7 +253,7 @@ tenants:
               interval: 10
               policies: [ "sensor-pub" ]
 
-            - id: "room-temp-01"
+            - id: "room-temp-02"
               class: "sensor"
               driver: "dht22"
               type: "room_temperature"
@@ -322,7 +261,7 @@ tenants:
               interval: 20
               policies: [ "sensor-pub" ]
 
-            - id: "electricity-01"
+            - id: "electricity-02"
               class: "sensor"
               driver: "sdm630m"
               type: "power"
@@ -330,7 +269,7 @@ tenants:
               interval: 15
               policies: [ "sensor-pub" ]
 
-            - id: "drone-01"
+            - id: "drone-02"
               class: "machine"
               driver: "generic_drone"
               location: "tagensgaard.barn"
@@ -358,7 +297,7 @@ tenants:
               normal: "20-60 %"
               low: "< 20 %"
               high: "> 70 %"
-            default_interval: 120
+            default_interval: 180
 
           - id: "room_humidity"
             driver: "dht22"
@@ -367,7 +306,7 @@ tenants:
               normal: "40-70 %"
               low: "< 30 %"
               high: "> 80 %"
-            default_interval: 30
+            default_interval: 300
 
           - id: "soil_temperature"
             driver: "ds18b20"
@@ -376,7 +315,7 @@ tenants:
               normal: "10-25 °C"
               low: "< 5 °C"
               high: "> 30 °C"
-            default_interval: 60
+            default_interval: 120
 
           - id: "room_temperature"
             driver: "dht22"
@@ -385,7 +324,7 @@ tenants:
               normal: "18-28 °C"
               low: "< 15 °C"
               high: "> 35 °C"
-            default_interval: 20
+            default_interval: 60
 
           - id: "co2_air"
             driver: "mh_z19b"
@@ -394,7 +333,7 @@ tenants:
               normal: "400-1200 ppm"
               low: "< 350 ppm"
               high: "> 2000 ppm"
-            default_interval: 5
+            default_interval: 15
 
           - id: "voltage"
             driver: "sdm630m"
@@ -403,7 +342,7 @@ tenants:
               normal: "400 V"
               low: null
               high: null
-            default_interval: 60
+            default_interval: 10
 
           - id: "current"
             driver: "sdm630m"
@@ -412,7 +351,7 @@ tenants:
               normal: "0-50 A"
               low: null
               high: null
-            default_interval: 60
+            default_interval: 10
 
           - id: "power"
             driver: "sdm630m"
@@ -421,7 +360,7 @@ tenants:
               normal: "15kW-25kW"
               low: "< 10kW"
               high: "> 30kW"
-            default_interval: 60
+            default_interval: 10
 
         actuator: { }
       message_classes:

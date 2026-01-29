@@ -23,6 +23,8 @@ class MqttClient:
         client.on_connect = self.on_connect
         client.on_disconnect = self.on_disconnect
         client.on_message = self.on_message
+        client.max_queued_messages_set(1000)
+        client.max_inflight_messages_set(200)
 
         self.client = client
         self.broker = broker
@@ -31,7 +33,15 @@ class MqttClient:
         if not self.client or not self.broker:
             raise RuntimeError("MQTT client not initialized")
 
-        self.client.connect(self.broker.mqtt_host, self.broker.mqtt_port)
+        while True:
+            try:
+                self.client.connect(self.broker.mqtt_host, self.broker.mqtt_port, keepalive=self.broker.keepalive)
+
+                self.logger.info(f"Connection succeded for {self.broker}")
+                break
+            except TimeoutError:
+                self.logger.info(f"Connection timed out for {self.broker} - will retry")
+                continue
         self.client.loop_start()
 
     def publish(self, topic: str, payload: dict, qos: int = 1, retain: bool = False):
