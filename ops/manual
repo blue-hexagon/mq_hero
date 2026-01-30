@@ -1,0 +1,98 @@
+Host Observability Platform:
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens18:
+      dhcp4: true
+    ens19:
+      dhcp4: false
+      addresses:
+        - 172.16.20.224/24
+      routes:
+        - to: 172.16.30.0/24
+          via: 172.16.20.1
+      nameservers:
+        addresses:
+          - 1.1.1.1
+          - 8.8.8.8
+
+
+
+#----------------------------------------------------------------------------
+#
+# Download and install OpenSSL
+https://slproweb.com/products/Win32OpenSSL.html
+
+$dir = "C:\Program Files\OpenSSL-Win64\bin"
+
+$old = [Environment]::GetEnvironmentVariable("Path", "User")
+[Environment]::SetEnvironmentVariable(
+    "Path",
+    "$old;$dir",
+    "User"
+)
+
+#
+# Place the following inside > ./data/certs/mosquitto.cnf
+
+[req]
+default_bits       = 2048
+prompt             = no
+default_md         = sha256
+req_extensions     = req_ext
+distinguished_name = dn
+
+[dn]
+C  = DK
+O  = RIT
+CN = mosquitto
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = mosquitto
+DNS.2 = localhost
+IP.1  = 127.0.0.1
+IP.2  = 172.16.20.224
+
+#
+# Goto @ ./data/certs
+
+openssl genrsa -out ca.key 4096
+
+openssl req -x509 -new -nodes `
+  -key ca.key `
+  -sha256 `
+  -days 3650 `
+  -out ca.crt `
+  -subj "/C=DK/O=RIT/CN=MQHeroCA"
+
+openssl genrsa -out mosquitto.key 2048
+
+openssl req -new `
+  -key mosquitto.key `
+  -out mosquitto.csr `
+  -config mosquitto.cnf
+
+openssl x509 -req `
+  -in mosquitto.csr `
+  -CA ca.crt `
+  -CAkey ca.key `
+  -CAcreateserial `
+  -out mosquitto.crt `
+  -days 825 `
+  -sha256 `
+  -extensions req_ext `
+  -extfile mosquitto.cnf
+
+# ca.crt         ← Hvad klienterne stoler på
+# mosquitto.crt  ← broker certifikat
+# mosquitto.key  ← broker private key
+
+
+openssl x509 -in mosquitto.crt -noout -text |
+  Select-String "Subject Alternative"
+
+# Exptected: DNS:mosquitto, DNS:localhost, IP Address:127.0.0.1, IP Address:10.60.82.29
