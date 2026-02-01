@@ -3,29 +3,19 @@
 #------------------------------------ Input Data ------------------------------------#
 ######################################################################################
 DEPARTMENTS_STR="image,video"
+HOST_IP="172.16.20.192"
+COMPANY_NAME="agritech"
+COMPANY_DOMAIN="agitech.rit.local"
+declare -a DEPARTMENTS=()
+declare -a ftp_users=()
+declare -a ftp_passwords=()
 
-if [ -z "$COMPANY_NAME" ]; then
-    COMPANY_NAME="agritech"
-fi
-if [ -z "$COMPANY_DOMAIN" ]; then
-    COMPANY_DOMAIN="agritech.rit.local"
-fi
-if [ -z "$HOST_IP" ]; then
-    HOST_IP="172.16.20.198"
-fi
-if [[ -z "$DEPARTMENTS_STR" ]]; then
-    echo "DEPARTMENTS_STR is empty! Exiting."
-    exit 1
-fi
 if [[ ${#DEPARTMENTS[@]} -eq 0 ]]; then
     IFS=',' read -ra DEPARTMENTS <<<"$DEPARTMENTS_STR"
     for dep in "${DEPARTMENTS[@]}"; do
         echo "Creating department: $dep"
     done
 fi
-
-ftp_users=()
-ftp_passwords=()
 
 for dept in "${DEPARTMENTS[@]}"; do
     ftp_users+=("${COMPANY_NAME}_${dept}_ro")
@@ -35,7 +25,7 @@ for dept in "${DEPARTMENTS[@]}"; do
 done
 ftp_users+=("${COMPANY_NAME}_admin")
 ftp_passwords+=("KOde12345!!?")
-ftp_users+=("rit_${COMPANY_NAME}")
+ftp_users+=("${COMPANY_NAME}_ansat")
 ftp_passwords+=("KOde12345!!?")
 echo "[1/9]: Config data loaded."
 
@@ -80,10 +70,10 @@ for i in "${!ftp_users[@]}"; do
     sudo usermod -aG sharedftp "$user"
     echo "$user:$pass" | sudo chpasswd
     # [RO, Ansat] Grant HTTP access by creating a local database for later use along with Nginx basic auth module.
-    if [[ "${user}" == *ro ]] || [[ "${user}" == *agritech ]]; then
+    if [[ "${user}" == *ro ]] || [[ "${user}" == *ansat ]]; then
         htpasswd -cb "/etc/nginx/.htpasswd_$dept" $user $pass
     fi
-    # [RW, Admin, External] Grant FTP access.
+    # [RW: Admin, External] Grant FTP access.
     if [[ "${user}" == *rw ]] || [[ "${user}" == *admin ]] || [[ "${user}" == *external ]]; then
         grep -q "^${user}$" /etc/vsftpd/user_list || echo "${user}" >>/etc/vsftpd/user_list
     fi
@@ -91,7 +81,7 @@ for i in "${!ftp_users[@]}"; do
     # [RO] Custom VSFTPD config.
     if [[ "$user" == *ro ]]; then
         sudo tee "/etc/vsftpd/user_config/$user" >/dev/null <<-EOF1A
-        local_root=/srv/ftp/nhi/${dept}/
+        local_root=/srv/ftp/nhi/${dept}/ro
         dirlist_enable=YES
         write_enable=NO
         download_enable=YES
@@ -100,7 +90,7 @@ EOF1A
     # [RW] Custom VSFTPD config.
     elif [[ "$user" == *rw ]]; then
         sudo tee "/etc/vsftpd/user_config/$user" >/dev/null <<-EOF1B
-        local_root=/srv/ftp/nhi/${dept}/
+        local_root=/srv/ftp/nhi/${dept}/rw
         dirlist_enable=YES
         write_enable=YES
         download_enable=YES
@@ -156,7 +146,7 @@ sudo chown root:sharedftp /srv/ftp/software
 sudo chmod 2775 /srv/ftp/software
 
 cat <<EOF | sudo tee /etc/vsftpd.conf >/dev/null
-ftpd_banner=Velkommen Til ${COMPANY_NAME^^}'s Sikre FTP Service!
+ftpd_banner=Velkommen Til ${COMPANY_NAME^^}'s sikre FTP Service!
 
 xferlog_enable=YES
 dual_log_enable=YES
@@ -181,7 +171,7 @@ chown_upload_mode=0775
 file_open_mode=0664
 local_umask=002
 
-pasv_address=172.16.20.198
+pasv_address=172.16.20.192
 pasv_min_port=30000
 pasv_max_port=31000
 local_max_rate=1000000000
@@ -213,7 +203,7 @@ listen=YES
 listen_ipv6=NO
 EOF
 
-echo "${COMPANY_NAME}_admin" >/etc/vsftpd/vsftpd.chroot
+echo "${COMPANY_NAME}_admin" >> /etc/vsftpd/vsftpd.chroot
 sed -i '/^Subsystem/s/^/#/' /etc/ssh/sshd_config # Removes SFTP access as it overrides vsftpd configuration and is a security issue.
 echo "[5/9]: VSFTPD Configured."
 ######################################################################################
@@ -221,7 +211,7 @@ echo "[5/9]: VSFTPD Configured."
 ######################################################################################
 PFX_PASSWORD="${PFX_PASSWORD:-changeme123}"
 if [ ! -f /etc/vsftpd/vsftpd.pem ]; then
-    sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/vsftpd/vsftpd.pem -out /etc/vsftpd/vsftpd.crt -subj "/C=DK/ST=Denmark/L=Copenhagen/O=NHI/OU=IT Department/CN=ftp.${COMPANY_DOMAIN}"
+    sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /etc/vsftpd/vsftpd.pem -out /etc/vsftpd/vsftpd.crt -subj "/C=DK/ST=Denmark/L=Copenhagen/O=RIT/OU=IT Department/CN=ftp.${COMPANY_DOMAIN}"
     openssl pkcs12 -export -out /srv/ftp/nhi/vsftpd.pfx -inkey /etc/vsftpd/vsftpd.pem -in /etc/vsftpd/vsftpd.crt -passout pass:"$PFX_PASSWORD"
     # cat /etc/vsftpd/vsftpd.pem /etc/vsftpd/vsftpd.crt | sudo tee /etc/vsftpd/vsftpd.pem >/dev/null
 fi
@@ -334,7 +324,7 @@ cat <<EOF | sudo tee -a /etc/nginx/sites-available/archive >/dev/null
         charset utf-8;
         disable_symlinks if_not_owner;
         auth_basic "${COMPANY_NAME^^}";
-        auth_basic_user_file /etc/nginx/.htpasswd_ansat;
+        auth_basic_user_file /etc/nginx/.htpasswd_$dept;
     }
 }
 EOF
