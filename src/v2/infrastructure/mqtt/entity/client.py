@@ -1,5 +1,6 @@
 import json
 import logging
+import ssl
 
 import paho.mqtt.client as mqtt
 
@@ -19,6 +20,8 @@ class MqttClient:
 
         if broker.mqtt_username:
             client.username_pw_set(broker.mqtt_username, broker.mqtt_password)
+        client.tls_set(ca_certs="ca.crt", tls_version=ssl.PROTOCOL_TLSv1_2)
+        client.tls_insecure_set(False)
 
         client.on_connect = self.on_connect
         client.on_disconnect = self.on_disconnect

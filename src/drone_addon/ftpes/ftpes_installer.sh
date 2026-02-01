@@ -35,7 +35,7 @@ for dept in "${DEPARTMENTS[@]}"; do
 done
 ftp_users+=("${COMPANY_NAME}_admin")
 ftp_passwords+=("KOde12345!!?")
-ftp_users+=("${COMPANY_NAME}_agritech")
+ftp_users+=("rit_${COMPANY_NAME}")
 ftp_passwords+=("KOde12345!!?")
 echo "[1/9]: Config data loaded."
 
@@ -181,7 +181,7 @@ chown_upload_mode=0775
 file_open_mode=0664
 local_umask=002
 
-pasv_address=192.168.10.20
+pasv_address=172.16.20.198
 pasv_min_port=30000
 pasv_max_port=31000
 local_max_rate=1000000000
@@ -193,7 +193,6 @@ userlist_enable=YES
 ssl_enable=YES
 force_local_data_ssl=YES
 force_local_logins_ssl=YES
-# YES, YES, YES! https://www.youtube.com/watch?v=7bkq9bySQXI
 
 ssl_tlsv1=YES
 ssl_sslv2=NO

@@ -11,8 +11,8 @@ tenants:
         - id: "prod"
           username: "simulator"
           password: "KOde12345!!?"
-          ipv4: "10.60.82.29"
-          port: 1883
+          ipv4: "172.16.20.224"
+          port: 8883
           keepalive: 120
 
     topology:
