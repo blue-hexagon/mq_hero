@@ -5,21 +5,17 @@ services:
     build: .
     container_name: image-watcher
     restart: unless-stopped
-    environment:
-      FTP_HOST: "ftp.agritech.rit.local"
-      FTP_USER: "agritech_drone_rw"
-      FTP_PASS: "KOde12345!!?"
-      FTP_REMOTE_DIR: "/incoming"
+
+    env_file:
+      - .env
+
     volumes:
       - /srv/nhi/ftp/images/rw/incoming:/data/incoming
       - /srv/nhi/ftp/images/ro/processed:/data/processed
       - watcher_state:/state
 
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "1.0"
+    mem_limit: 512m
+    cpus: 1.0
 
 volumes:
   watcher_state:

@@ -18,4 +18,9 @@ RUN chmod +x watcher.sh shelldeps.sh
 
 RUN mkdir -p /state
 
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD pgrep -f inotifywait || exit 1
+
+STOPSIGNAL SIGTERM
+
 ENTRYPOINT ["/app/watcher.sh"]

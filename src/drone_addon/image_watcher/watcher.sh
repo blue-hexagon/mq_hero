@@ -9,6 +9,7 @@ upload_ftpes() {
   local file="$1"
 
   lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<EOF
+set cmd:fail-exit yes
 set ftp:ssl-force true
 set ftp:ssl-protect-data true
 set ssl:verify-certificate false
@@ -22,7 +23,6 @@ bye
 EOF
 }
 
-
 WATCH_DIR="/data/incoming"
 OUT_DIR="/data/processed"
 STATE_FILE="/state/imgproc.last"
@@ -33,7 +33,6 @@ echo "[+] Watching $WATCH_DIR"
 
 last_cleanup_hour=""
 
-inotifywait -m -e close_write,moved_to --format '%f' "$WATCH_DIR" |
 while IFS= read -r FILE; do
 
     case "$FILE" in
@@ -43,6 +42,8 @@ while IFS= read -r FILE; do
 
     IN="$WATCH_DIR/$FILE"
     OUT="$OUT_DIR/processed_$FILE"
+
+    [[ -f "$IN" ]] || continue
 
     now=$(date +%s)
     last=0
@@ -55,21 +56,30 @@ while IFS= read -r FILE; do
 
     echo "[*] Processing $FILE"
 
-    if convert ... "$OUT"
+    if convert \
+        -limit memory 256MB \
+        -limit map 512MB \
+        "$IN" \
+        -resize 1920x1920\> \
+        -contrast-stretch 0.5%x0.5% \
+        -sharpen 0x0.7 \
+        -modulate 100,110,100 \
+        "$OUT"
     then
         echo "[✓] Saved $OUT"
 
         if upload_ftpes "$OUT"; then
             echo "[✓] Uploaded to FTPES"
+            echo "$now" > "$STATE_FILE"
         else
             echo "[✗] FTPES upload failed" >&2
             continue
         fi
-
-        echo "$now" > "$STATE_FILE"
     else
-        echo "[✗] Failed processing"
+        echo "[✗] Convert failed"
+        continue
     fi
+
     current_hour=$(date +%H)
     if [[ "$current_hour" != "$last_cleanup_hour" ]]; then
         find "$OUT_DIR" -type f -mmin +1440 -delete
@@ -77,4 +87,4 @@ while IFS= read -r FILE; do
         echo "[*] Cleanup done"
     fi
 
-done
+done < <(inotifywait -m -e close_write,moved_to --format '%f' "$WATCH_DIR")
